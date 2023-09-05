@@ -1,86 +1,31 @@
-from typing import Set, List, Dict
+import re
+from typing import Dict, List, Set, Tuple
 
 import pytest
+from langchain.schema import Document
 
-from langchain.schema import BaseRetriever, Document
-#from langchain_qa_with_references.chains import QAWithReferencesChain
 from langchain_qa_with_references.chains import QAWithReferencesChain
-from langchain.callbacks.stdout import StdOutCallbackHandler
-from tests.unit_tests.fake_llm import FakeLLM
 
-VERBOSE=True
-if VERBOSE:  # FIXME: paramètre à traiter dans la chain
-    from typing import *
-    class ExStdOutCallbackHandler(StdOutCallbackHandler):
-        def on_text(
-            self,
-            text: str,
-            color: Optional[str] = None,
-            end: str = "",
-            **kwargs: Any,
-        ) -> None:
-            print("====")
-            return super().on_text(text=text, color=color, end=end)
+from ._test_retriever import CALLBACKS, init_llm, logger
 
-        def on_chain_end(self, outputs: Dict[str, Any], **kwargs: Any) -> None:
-            """Ajoute une trace des outputs du llm"""
-            print("\n\033[1m> Finished chain with\033[0m")
-            knows_keys = {
-                "answer",
-                "output_text",
-                "text",
-                "result",
-                "outputs",
-                "output",
-            }
-            if "outputs" in outputs:
-                print("\n\033[33m")
-                print(
-                    "\n---\n".join(
-                        [text["text"].strip() for text in outputs["outputs"]]
-                    )
-                )
-                print("\n\033[0m")
-            elif knows_keys.intersection(outputs):
-                # Prend la première cles en intersection
-                print(
-                    f"\n\033[33m{outputs[next(iter(knows_keys.intersection(outputs)))]}\n\033[0m"
-                )
-            else:
-                pass
-
-    CALLBACKS = [ExStdOutCallbackHandler()]
-else:
-    CALLBACKS = []
 
 @pytest.mark.parametrize(
-    "question,docs,map_responses,expected_answer,references,verbatims",
+    "question,docs,map_responses",
     [
-        # (
-        #     "Which state/country's law governs the interpretation of the contract?",
-        #     [
-        #         Document(
-        #             page_content="This Agreement is governed by English law.",
-        #             metadata={"source": "1.html"},
-        #         ),
-        #     ],
-        #     {
-        #         0: 'Here is the output:{"verbatims": ["This Agreement is governed by English law."]}',
-        #         1: "This Agreement is governed by English law.",
-        #     },
-        #     "This Agreement is governed by English law.",
-        #     {0},
-        #     [["This Agreement is governed by English law."]],
-        # ),
         (
             "what does it eat?",
             [
                 Document(
-                    page_content="he eats\napples and plays football. My name is Philippe. he eats pears.",
+                    page_content="The night is black.",
                     metadata={},
                 ),
                 Document(
-                    page_content="he eats carrots. I like football.",
+                    page_content="He eats\napples and plays football. "
+                    "My name is Philippe. He eats pears.",
+                    metadata={},
+                ),
+                Document(
+                    page_content="He eats carrots. I like football.",
                     metadata={},
                 ),
                 Document(
@@ -89,60 +34,144 @@ else:
                 ),
             ],
             {
-                0: 'Here is the output:\n```\n{"verbatims": ["he eats apples.", "he eats pears."]}\n```',
-                1: 'Here is the output:\n```\n{"verbatims": ["he eats carrots."]}\n```',
-                2: 'Here is the output:\n```\n{"verbatims": ["The Earth is round."]}\n```',
-                4: "He eats apples, pears, and carrots.",
+                "stuff": (
+                    {
+                        0: "```\n"
+                        '{"response": "He eats apples and pears and carrots.",'
+                        ' "documents": [1,2]}\n'
+                        "```\n",
+                    },
+                    r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
+                    {1, 2},
+                ),
+                "map_reduce": (
+                    {
+                        0: 'Output: {"lines": []}',
+                        1: 'Output: {"lines": ["He eats apples.", "He eats pears."]}',
+                        2: 'Output: {"lines": ["He eats carrots."]}',
+                        3: 'Output: {"lines": []}',
+                        4: '{"response": "He eats apples, pears, and carrots.", '
+                        '"documents": [1,2]}',
+                    },
+                    r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
+                    {1, 2},
+                ),
+                "refine": (
+                    {
+                        0: "The output should be:\n"
+                        "```\n"
+                        '{"response": "I don\'t know", "documents": []}\n'
+                        "```",
+                        1: "Therefore, the final output should be:\n"
+                        "```\n"
+                        '{"response": "He eats apples and pears.", "documents": [1]}\n'
+                        "```\n",
+                        2: "Therefore, the final output should be:\n"
+                        "```\n"
+                        '{"response": "He eats apples, pears, and carrots.", '
+                        '"documents": [1, 2]}\n'
+                        "```\n",
+                        3: "Therefore, the final output should be:\n"
+                        "```"
+                        '{"response": "He eats apples, pears, and carrots.", '
+                        '"documents": [1, 2, 3]}\n'
+                        "```\n",
+                    },
+                    r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
+                    {1, 2},
+                ),
+                "map_rerank": (
+                    {
+                        0: '{"response": "This document does not answer the question", '
+                        '"documents": []}\n'
+                        "Score: 0\n",
+                        1: '{"response": "apples and pears", "documents": []}\n'
+                        "Score: 100\n",
+                        2: '{"response": "carrots", "documents": []}\n' "Score: 100\n",
+                        3: '{"response": "This document does not answer the question", '
+                        '"documents": []}\n'
+                        "Score: 0\n",
+                        4: '{"response": "apples and pears", "documents": []}\n',
+                    },
+                    r"(?i).*\bapples\b.*\bpears",
+                    {1},
+                ),
             },
-            "He eats apples, pears, and carrots.",
-            {0, 1},
-            [["he eats\napples", "he eats pears."], ["he eats carrots."]],
         ),
+    ],
+)
+# @pytest.mark.parametrize("chain_type", ["stuff", "map_reduce", "refine", "map_rerank"])
+@pytest.mark.parametrize(
+    "chain_type",
+    [
+        "map_reduce",
     ],
 )
 def test_qa_with_reference_chain(
     question: str,
     docs: List[Document],
-    map_responses: Dict[int, str],
-    expected_answer: str,
-    references: Set[int],
-    verbatims: List[List[str]],
+    map_responses: Dict[str, Tuple[Dict[int, str], str, Set[int]]],
+    chain_type: str,
 ) -> None:
-    llm_response = f"{expected_answer}\n" f"IDXS:{','.join(map(str,references))}"
-    chain_type="map_reduce"  # stuff, map_reduce, refine, map_rerank
+    # chain_type = "map_reduce"  # stuff, map_reduce, refine, map_rerank
 
-    if True:  # Use simulation ?
-        llm = FakeLLM(
-            queries=map_responses,
-            sequential_responses=True,
+    queries, expected_answer, references = map_responses[chain_type]
+    llm = init_llm(queries)
+
+    for i in range(0, 1):  # Retry if empty ?
+        qa_chain = QAWithReferencesChain.from_chain_type(
+            llm=llm,
+            chain_type=chain_type,
         )
-    else:  # Not a simulation
-        from langchain import OpenAI
-        from dotenv import load_dotenv
-        import langchain
-
-        load_dotenv()
-        from langchain.cache import SQLiteCache
-
-        langchain.llm_cache = SQLiteCache(database_path="/tmp/cache.db")
-        llm = OpenAI(
-            temperature=0,
+        answer = qa_chain(
+            inputs={
+                "docs": docs,
+                "question": question,
+            },
+            callbacks=CALLBACKS,
         )
-    qa_chain = QAWithReferencesChain.from_chain_type(
+        answer_of_question = answer["answer"]
+        if not answer_of_question:
+            logger.warning("Return nothing. Retry")
+            continue
+        assert re.match(expected_answer, answer_of_question)
+        for ref, original in zip(references, answer["source_documents"]):
+            assert docs[ref] is original, "Return incorrect original document"
+        break
+    else:
+        print(f"response after {i + 1} tries.")
+        assert not "Impossible to receive a response"
+    print(f"response après {i}")
+
+
+@pytest.mark.skip(reason="Disabled, because the test invokes open")
+@pytest.mark.parametrize("chain_type", ["stuff", "map_reduce", "refine", "map_rerank"])
+def test_qa_with_reference_chain_and_retriever(chain_type: str) -> None:
+    from ._test_retriever import CALLBACKS, FAKE_LLM, init_llm, test_retriever
+
+    assert not FAKE_LLM
+    type = "apify"
+
+    llm = init_llm({})
+    retriever, question = test_retriever(type, llm)
+
+    # retriever.get_relevant_documents("what time is it?")
+    from langchain_qa_with_references.chains import RetrievalQAWithReferencesChain
+
+    qa_chain = RetrievalQAWithReferencesChain.from_chain_type(
         llm=llm,
         chain_type=chain_type,
+        retriever=retriever,
+        reduce_k_below_max_tokens=True,
     )
     answer = qa_chain(
         inputs={
-            "docs": docs,
             "question": question,
         },
         callbacks=CALLBACKS,
     )
-    assert answer["answer"].strip() == expected_answer
-    for ref, original, assert_verbatims in zip(
-        references, answer["source_documents"], verbatims
-    ):
-        assert docs[ref] is original
-        if chain_type in ["map_reduce",]:
-            assert original.metadata["verbatims"] == assert_verbatims
+    print(
+        f'For the question "{question}", to answer "{answer["answer"]}", the LLM use:'
+    )
+    for doc in answer["source_documents"]:
+        print(f"Source {doc.metadata['source']}")

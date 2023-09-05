@@ -2,19 +2,34 @@
 
 
 from langchain.prompts import PromptTemplate
-from .references import references_parser, References
+from .verbatims import verbatims_parser, Verbatims, VerbatimsFromDoc
 
-_response_example_1 = References(
+_response_example_1 = Verbatims(
     response="This Agreement is governed by English law.",
-    documents=[0],
+    documents=[
+        # Sample with multiple verbatims
+        VerbatimsFromDoc(
+            ids=[0],
+            verbatims=[
+                "This Agreement is governed by English law",
+                "The english law is applicable for this agreement.",
+            ],
+        ),
+        # Sample with one verbatim
+        VerbatimsFromDoc(
+            ids=[3], verbatims=["The english law is applicable for this agreement."]
+        ),
+    ],
 )
 
 # Sample with no result
-_response_example_2 = References(response="I don't know.", documents=[])
+_response_example_2 = Verbatims(response="I don't know.", documents=[])
 
 _template = """Given the following extracts from several documents, a question and not prior knowledge. 
 Process step by step:
-- for each documents extract the references ("IDS")
+- for each documents:
+    - extract the references ("IDS")
+    - extract all the verbatims from the texts only if they are relevant to answering the question, in a list of strings  
 - creates a final answer
 - produces the json result
 
@@ -71,11 +86,11 @@ PROMPT = PromptTemplate(
     template=_template,
     input_variables=["summaries", "question"],
     partial_variables={
-        "format_instructions": references_parser.get_format_instructions(),
-        "_response_example_1": str(_response_example_1),
-        "_response_example_2": str(_response_example_2),
+        "format_instructions": verbatims_parser.get_format_instructions(),
+        "_response_example_1": _response_example_1.json(),
+        "_response_example_2": _response_example_2.json(),
     },
-    output_parser=references_parser,
+    output_parser=verbatims_parser,
 )
 EXAMPLE_PROMPT = PromptTemplate(
     template="Content: {page_content}\n" "idx: {_idx}",

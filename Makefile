@@ -135,6 +135,13 @@ endif
 sync:
 	cp -rf ../langchain/libs/experimental/langchain_experimental/chains/qa_with_references/ \
 		langchain_qa_with_references/chains/
+	cp -f ../langchain/libs/experimental/langchain_experimental/chains/__init__.py \
+		langchain_qa_with_references/chains/
+	cp -rf ../langchain/libs/experimental/langchain_experimental/chains/qa_with_references_and_verbatims/ \
+		langchain_qa_with_references/chains/
 	cp -rf ../langchain/libs/experimental/tests/unit_tests/chains/ \
 		tests/unit_tests/
-	find . -type f -name '*.py' | xargs sed -i 's/langchain_experimental/langchain_qa_with_references/g'
+	cp ../langchain/libs/experimental/docs/qa_with_reference*.ipynb .
+	find . -type f \( -name '*.py' -or -name '*.ipynb' \) | xargs sed -i 's/langchain_experimental/langchain_qa_with_references/g'
+	find . -type f -name '*.ipynb' | xargs sed -i 's/langchain-experimental/langchain-qa_with_references/g'
+	find . -type f -name '*.ipynb' | xargs sed -i 's/\.\.\/\.\.\/\.\.\/docs/./g'

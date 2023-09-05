@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "langchain-qa_with_references"
-version = "0.0.274"
-description = "This is a temporary wproject while I wait for my langchain [pull-request](https://github.com/langchain-ai/langchain/pull/7278) to be validated."
+version = "0.0.281"
+description = "This is a temporary project while I wait for my langchain [pull-request](https://github.com/langchain-ai/langchain/pull/7278) to be validated."
 authors = ["Philippe PRADOS"]
 license = "MIT License"
 readme = "README.md"
@@ -10,8 +10,12 @@ packages = [{include = "langchain_qa_with_references"}]
 
 [tool.poetry.dependencies]
 python = ">=3.8.1,<4.0"
-langchain = "^0.0.274"
-pydantic= "1.*"
+langchain = ">=0.0.281"
+tiktoken = {version = "^0.3.2", optional = true, python="^3.9"}
+
+[tool.poetry.extras]
+openai = ["tiktoken","openai"]
+
 
 [tool.poetry.group.dev]
 optional = true
@@ -19,7 +23,11 @@ optional = true
 [tool.poetry.group.dev.dependencies]
 jupyter = "^1.0.0"
 playwright = "^1.28.0"
-setuptools = "^68.1.2"
+setuptools = ">=68.1.2"
+pandas = "^2.0.0"
+unstructured="^0.10.8"
+twine="^4.0.0"
+torch = ">=1,<3"
 
 [tool.poetry.group.test.dependencies]
 # The only dependencies that should be added are
@@ -28,9 +36,7 @@ setuptools = "^68.1.2"
 pytest = "^7.3.0"
 pytest-cov = "^4.0.0"
 pytest-dotenv = "^0.5.2"
-duckdb = "0.8.0"
 #duckdb-engine = "^0.7.0"
-#duckdb-engine = "0.8.0"
 pytest-watcher = "^0.2.6"
 freezegun = "^1.2.2"
 responses = "^0.22.0"
@@ -39,6 +45,4 @@ lark = "^1.1.5"
 pandas = "^2.0.0"
 pytest-mock  = "^3.10.0"
 pytest-socket = "^0.6.0"
-#syrupy = "^4.0.2"
-unstructured="^0.10.8"
-twine="^4.0.0"
+syrupy = "^4.0.2"

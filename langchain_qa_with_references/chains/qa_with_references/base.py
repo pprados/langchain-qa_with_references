@@ -2,40 +2,44 @@
 
 from __future__ import annotations
 
-import logging
 import inspect
-import re
+import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Set, Tuple, Callable
+from typing import Any, Dict, List, Optional, Set, Tuple, cast
 
-from langchain.callbacks.base import Callbacks
-from langchain.pydantic_v1 import Extra, Field
 from langchain.base_language import BaseLanguageModel
 from langchain.callbacks.manager import (
     AsyncCallbackManagerForChainRun,
     CallbackManagerForChainRun,
 )
-from langchain.schema import BaseOutputParser, OutputParserException
 from langchain.chains.base import Chain
 from langchain.chains.combine_documents.base import BaseCombineDocumentsChain
 from langchain.chains.combine_documents.map_reduce import MapReduceDocumentsChain
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.chains.llm import LLMChain
 from langchain.docstore.document import Document
-from langchain.schema import BasePromptTemplate, BaseOutputParser
+
+# Impossible to import in experimental. bug in the CI
+from langchain.pydantic_v1 import Extra
+
+# from pydantic import Extra
+from langchain.schema import BaseOutputParser, BasePromptTemplate, OutputParserException
+
 from .loading import (
     load_qa_with_references_chain,
 )
-from .map_reduce_prompt import (
+from .map_reduce_prompts import (
     COMBINE_PROMPT,
     EXAMPLE_PROMPT,
     QUESTION_PROMPT,
-    default_verbatim_parser,
 )
+from .references import references_parser
 
 logger = logging.getLogger(__name__)
 
 
+# TOTRY: Add in VectorStoreIndexWrapper.query_with_references()
+# TOTRY: Add in VectorStoreIndexWrapper.query_with_references_and_verbatims()
 class BaseQAWithReferencesChain(Chain, ABC):
     combine_documents_chain: BaseCombineDocumentsChain
 
@@ -44,13 +48,8 @@ class BaseQAWithReferencesChain(Chain, ABC):
     input_docs_key: str = "docs"  #: :meta private:
     answer_key: str = "answer"  #: :meta private:
     source_documents_key: str = "source_documents"  #: :meta private:
-
-    verbatim_parser: BaseOutputParser = Field(default_factory=default_verbatim_parser)
-    """ parser to extract verbatim"""
-    """ Maximum number of verbatim by document"""
-
-    map_parser: BaseOutputParser
-    """If it's necessary to parse the output of map step."""
+    chain_type: str  #: :meta private:
+    output_parser: Optional[BaseOutputParser] = None
 
     @classmethod
     def from_llm(
@@ -59,7 +58,6 @@ class BaseQAWithReferencesChain(Chain, ABC):
         document_prompt: BasePromptTemplate = EXAMPLE_PROMPT,
         question_prompt: BasePromptTemplate = QUESTION_PROMPT,
         combine_prompt: BasePromptTemplate = COMBINE_PROMPT,
-        map_parser: BaseOutputParser = default_verbatim_parser(),
         **kwargs: Any,
     ) -> BaseQAWithReferencesChain:
         """Construct the chain from an LLM."""
@@ -75,11 +73,9 @@ class BaseQAWithReferencesChain(Chain, ABC):
             combine_document_chain=combine_results_chain,
             document_variable_name="context",
             return_intermediate_steps=True,
-            # map_parser=map_parser,
         )
         return cls(
             combine_documents_chain=combine_document_chain,
-            map_parser=map_parser
             **kwargs,
         )
 
@@ -89,7 +85,6 @@ class BaseQAWithReferencesChain(Chain, ABC):
         llm: BaseLanguageModel,
         chain_type: str = "stuff",
         chain_type_kwargs: Optional[dict] = None,
-        map_parser: BaseOutputParser = default_verbatim_parser(),
         **kwargs: Any,
     ) -> BaseQAWithReferencesChain:
         """Load chain from chain type."""
@@ -97,12 +92,16 @@ class BaseQAWithReferencesChain(Chain, ABC):
         combine_document_chain = load_qa_with_references_chain(
             llm,
             chain_type=chain_type,
-            # map_parser=map_parser,
             **_chain_kwargs,
         )
+        if chain_type == "map_rerank" and "output_parser" not in kwargs:
+            from .map_rerank_prompts import rerank_reference_parser
+
+            kwargs["output_parser"] = rerank_reference_parser
+
         return cls(
             combine_documents_chain=combine_document_chain,
-            map_parser=map_parser,
+            chain_type=chain_type,
             **kwargs,
         )
 
@@ -138,6 +137,74 @@ class BaseQAWithReferencesChain(Chain, ABC):
     ) -> List[Document]:
         """Get docs to run questioning over."""
 
+    def _process_reference(
+        self, answers: Dict[str, Any], docs: List[Document], references: Any
+    ) -> Set[int]:
+        # With the map_rerank mode, use extra parameter for map_rerank to identify
+        # the corresponding document.
+        if "_idx" in answers:
+            references.documents.append(answers["_idx"])
+
+        return references.documents
+
+    def _process_results(
+        self,
+        answers: Dict[str, Any],
+        docs: List[Document],
+        run_manager: Optional[CallbackManagerForChainRun] = None,
+    ) -> Tuple[str, Set[int]]:
+        idx = set()
+        answer = answers[self.combine_documents_chain.output_key]
+        try:
+            # At this time (version 0.0.273), the output_parser is not
+            # automatically called.
+            # We must extract this parser to analyse the response.
+            parser: Optional[BaseOutputParser] = self.output_parser
+            if not parser:
+                if self.chain_type == "map_rerank":
+                    assert self.output_parser
+                elif self.chain_type == "map_reduce":
+                    parser = cast(
+                        Any, self.combine_documents_chain
+                    ).collapse_document_chain.llm_chain.prompt.output_parser
+                elif self.chain_type == "refine":
+                    parser = cast(
+                        Any, self.combine_documents_chain
+                    ).refine_llm_chain.prompt.output_parser
+                else:
+                    # Simple chain
+                    parser = cast(
+                        Any, self.combine_documents_chain
+                    ).llm_chain.prompt.output_parser
+            assert parser
+            references = parser.parse(answer)
+            answer = references.response
+
+            idx = set(self._process_reference(answers, docs, references))
+
+            # Purge _idx
+            for doc in docs:
+                del doc.metadata["_idx"]
+            return answer, idx
+        except OutputParserException as e:
+            # Probably that the answer has been cut off.
+            if run_manager:
+                run_manager.on_chain_error(e)
+            raise e
+        except Exception as e:
+            if run_manager:
+                run_manager.on_chain_error(e)
+            raise e
+
+    @abstractmethod
+    async def _aget_docs(
+        self,
+        inputs: Dict[str, Any],
+        *,
+        run_manager: AsyncCallbackManagerForChainRun,
+    ) -> List[Document]:
+        """Get docs to run questioning over."""
+
     def _call(
         self,
         inputs: Dict[str, Any],
@@ -163,68 +230,13 @@ class BaseQAWithReferencesChain(Chain, ABC):
             },
             callbacks=_run_manager.get_child(),
         )
-        if "_idx" in answers:
-            # Detect usage of MapRerank
-            return {
-                self.answer_key: answers[
-                    self.combine_documents_chain.output_key
-                ].strip(),
-                self.source_documents_key: [docs[int(answers["_idx"])]],
-            }
-
-        answer, all_idx = self._split_answsers(answers, docs)
+        answer, all_idx = self._process_results(answers, docs)
         selected_docs = [docs[idx] for idx in all_idx if idx < len(docs)]
 
         return {
             self.answer_key: answer,
             self.source_documents_key: selected_docs,
         }
-
-    def _split_answsers(
-        self, answers: str, docs: List[Document]
-    ) -> Tuple[str, Set[int]]:
-        # Add verbatim of the original document
-        if "intermediate_steps" in answers:
-            for i, str_verbatim in enumerate(answers["intermediate_steps"]):
-                if str_verbatim.strip() != "None":
-                    try:
-                        extracted_verbatims = (
-                            self.map_parser.parse(str_verbatim)
-                        )
-                        # Extract from the original verbatim from docs
-                        if hasattr(
-                            extracted_verbatims, "update_verbatims"
-                        ) and callable(
-                            getattr(extracted_verbatims, "update_verbatims")
-                        ):
-                            extracted_verbatims.update_verbatims(docs[i].page_content)
-                        if extracted_verbatims.verbatims:
-                            docs[i].metadata[
-                                "verbatims"
-                            ] = extracted_verbatims.verbatims
-                    except OutputParserException as e:
-                        logger.debug(f"Ignore output parserException ({e})")
-
-        answer = answers[self.combine_documents_chain.output_key]
-        s = re.match(r"(.*)\nIDXS:(.*)", answer, re.MULTILINE | re.DOTALL)
-        if s:
-            answer, idxs = s[1].strip(), s[2].strip()
-        else:
-            idxs = ""
-
-        # Purge _idx
-        for doc in docs:
-            del doc.metadata["_idx"]
-        return answer, set(map(int, re.split("[ ,]+", idxs))) if idxs else {}
-
-    @abstractmethod
-    async def _aget_docs(
-        self,
-        inputs: Dict[str, Any],
-        *,
-        run_manager: AsyncCallbackManagerForChainRun,
-    ) -> List[Document]:
-        """Get docs to run questioning over."""
 
     async def _acall(
         self,
@@ -251,34 +263,8 @@ class BaseQAWithReferencesChain(Chain, ABC):
             },
             callbacks=_run_manager.get_child(),
         )
-        if "_idx" in answers:
-            # Detect usage of MapRerank
-            return {
-                self.answer_key: answers[
-                    self.combine_documents_chain.output_key
-                ].strip(),
-                self.source_documents_key: [docs[int(answers["_idx"])]],
-            }
-
-        # Add verbatim of the original document
-        if "intermediate_steps" in answers:
-            for i, verbatim in enumerate(answers["intermediate_steps"]):
-                verbatim = verbatim.strip()
-                if verbatim in docs[i].page_content:
-                    if verbatim != "None":
-                        docs[i].metadata["verbatims"] = verbatim
-                else:
-                    pass  # No verbatim in the original document
-
-        answer = answers[self.combine_documents_chain.output_key]
-        s = re.match(r"(.*)IDXS:(.*)", answer, re.MULTILINE | re.DOTALL)
-        if s:
-            answer, idxs = s[1], s[2].strip()
-        else:
-            idxs = ""
-
-        all_idx = set(map(int, re.split("[ ,]+", idxs))) if idxs else []
-        selected_docs = [docs[idx] for idx in all_idx]
+        answer, all_idx = self._process_results(answers, docs)
+        selected_docs = [docs[idx] for idx in all_idx if idx < len(docs)]
 
         return {
             self.answer_key: answer,
@@ -288,16 +274,12 @@ class BaseQAWithReferencesChain(Chain, ABC):
 
 class QAWithReferencesChain(BaseQAWithReferencesChain):
     """
-    Question answering with references over documents.
-
     This chain extracts the information from the documents that was used to answer the
     question. The output `source_documents` contains only the documents that were used,
-    and for each one, only the text fragments that were used to answer are included.
-    If possible, the list of text fragments that justify the answer is added to
-    `metadata['verbatims']` for each document.
+    and for each one.
 
-    The result["source_documents"] returns only the list of documents used, enriched
-    if possible with the text extract used (doc.metadata["verbatims"]).
+    The result["source_documents"] returns only the list of documents used.
+    Then it is possible to find the page of a PDF, or the chapter of a markdown.
     """
 
     input_docs_key: str = "docs"  #: :meta private:

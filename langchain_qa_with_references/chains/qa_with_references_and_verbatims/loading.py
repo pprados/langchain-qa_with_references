@@ -1,4 +1,4 @@
-"""Load question answering with reference chains."""
+"""Load question answering with reference and verbatim chains."""
 from __future__ import annotations
 
 from typing import Any, Mapping, Optional, Protocol
@@ -153,9 +153,10 @@ def load_qa_with_references_chain(
     verbose: Optional[bool] = None,
     **kwargs: Any,
 ) -> BaseCombineDocumentsChain:
-    """Load question answering with only referenced documents.
+    """Load question answering with only referenced documents and verbatims.
 
-    The result["source_documents"] returns only the list of documents used.
+    The result["source_documents"] returns only the list of documents used, enriched
+    if possible with the text extract used (doc.metadata["verbatims"]).
 
     Args:
         llm: Language Model to use in the chain.
@@ -165,7 +166,7 @@ def load_qa_with_references_chain(
             applies to all chains that make up the final chain.
 
     Returns:
-        A chain to use for question answering with references.
+        A chain to use for question answering with references and verbatims.
     """
     loader_mapping: Mapping[str, LoadingCallable] = {
         "stuff": _load_stuff_chain,
@@ -188,9 +189,10 @@ def load_qa_with_references_and_retriever_chain(
     verbose: Optional[bool] = None,
     **kwargs: Any,
 ) -> BaseCombineDocumentsChain:
-    """Load question answering with only referenced documents.
+    """Load question answering with only referenced documents and verbatims.
 
-    The result["source_documents"] returns only the list of documents used.
+    The result["source_documents"] returns only the list of documents used, enriched
+    if possible with the text extract used (doc.metadata["verbatims"]).
 
     Args:
         llm: Language Model to use in the chain.
@@ -200,7 +202,7 @@ def load_qa_with_references_and_retriever_chain(
             applies to all chains that make up the final chain.
 
     Returns:
-        A chain to use for question answering with references.
+        A chain to use for question answering with references and verbatims.
     """
     loader_mapping: Mapping[str, LoadingCallable] = {
         "stuff": _load_stuff_chain,

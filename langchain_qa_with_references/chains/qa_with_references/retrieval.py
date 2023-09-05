@@ -2,28 +2,27 @@
 
 from typing import Any, Dict, List
 
-from langchain.pydantic_v1 import Field
-
 from langchain.callbacks.manager import (
     AsyncCallbackManagerForChainRun,
     CallbackManagerForChainRun,
 )
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.docstore.document import Document
+
+# Impossible to import in experimental. bug in the CI ?
+from langchain.pydantic_v1 import Field
+
 from langchain.schema import BaseRetriever
+
 from .base import (
     BaseQAWithReferencesChain,
 )
 
 
 class RetrievalQAWithReferencesChain(BaseQAWithReferencesChain):
-    """Question-answering with referenced documents and verbatim.
-    RetrievalQAWithSourceChain can only return URLs, if the documents have a source
-    metadata. It is not possible to have the precise list of documents used to answer
-    the question, nor the fragment of text used to do so.
+    """Question-answering result with referenced documents.
 
-    This implementation allows you to retrieve the list of documents, enriched with
-    the verbatim metadata, when using the map_reduce mode.
+    This implementation allows you to retrieve the list of documents.
     The implementation uses fewer tokens and correctly handles recursive map_reduces.
     """
 
