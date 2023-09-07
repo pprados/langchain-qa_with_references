@@ -9,6 +9,7 @@ and for each one, only the text fragments that were used to answer are included.
 If possible, the list of text fragments that justify the answer is added to
 `metadata['verbatims']` for each document.
 
+Don't forget to activate: max_tokens=2000 or more,
 """
 from .base import QAWithReferencesAndVerbatimsChain
 from .retrieval import RetrievalQAWithReferencesAndVerbatimsChain

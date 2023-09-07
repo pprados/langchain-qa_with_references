@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Set
 
 from langchain.output_parsers import PydanticOutputParser, RegexParser
 
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 # To optimize the consumption of tokens, it's better to use only 'text', without json.
 # Else the schema consume ~300 tokens and the response 20 tokens by step
-_OPTIMIZE = True
+_OPTIMIZE = False
 
 
 class References(BaseModel):
@@ -24,7 +24,7 @@ class References(BaseModel):
 
     response: str
     """ The response """
-    documents: List[int] = []
+    documents: Set[str] = set()
     """ The list of documents used to response """
 
     def __str__(self) -> str:

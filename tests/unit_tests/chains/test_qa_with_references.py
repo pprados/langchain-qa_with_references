@@ -100,13 +100,7 @@ from ._test_retriever import CALLBACKS, init_llm, logger
         ),
     ],
 )
-# @pytest.mark.parametrize("chain_type", ["stuff", "map_reduce", "refine", "map_rerank"])
-@pytest.mark.parametrize(
-    "chain_type",
-    [
-        "map_reduce",
-    ],
-)
+@pytest.mark.parametrize("chain_type", ["stuff", "map_reduce", "refine", "map_rerank"])
 def test_qa_with_reference_chain(
     question: str,
     docs: List[Document],
@@ -150,7 +144,7 @@ def test_qa_with_reference_chain_and_retriever(chain_type: str) -> None:
     from ._test_retriever import CALLBACKS, FAKE_LLM, init_llm, test_retriever
 
     assert not FAKE_LLM
-    type = "apify"
+    type = "google"
 
     llm = init_llm({})
     retriever, question = test_retriever(type, llm)

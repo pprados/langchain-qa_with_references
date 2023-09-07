@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any, Dict, List, Optional, Set, cast
 
 from langchain.base_language import BaseLanguageModel
@@ -44,33 +45,27 @@ class BaseQAWithReferencesAndVerbatimsChain(BaseQAWithReferencesChain):
                 # Fix the ids of the selected document.
                 verbatims.documents[0].ids = [answers["_idx"]]
 
-            # With the map_reduce mode, we must inject the associated idx.
-            if self.chain_type == "map_reduce":
-                parser_doc = cast(
-                    Any, self.combine_documents_chain
-                ).llm_chain.prompt.output_parser
-                for i, str_verbatim in enumerate(answers["intermediate_steps"]):
-                    doc_ref = parser_doc.parse(str_verbatim)
-                    for d in verbatims.documents:
-                        if d.verbatims == doc_ref.verbatims:
-                            d.ids = [docs[i].metadata["_idx"]]
-
             # Inject verbatims and get idx
             for ref_doc in verbatims.documents:
-                for doc_id in ref_doc.ids:
+                for str_doc_id in ref_doc.ids:
+                    doc_id=int(re.match("_idx_(\d+)",str_doc_id)[1])
                     if 0 <= doc_id < len(docs):  # Guard
                         if ref_doc.verbatims:
-                            idx.add(doc_id)
                             # Search the real verbatim if possible
                             original_verbatim = ref_doc.original_verbatims(
                                 docs[doc_id].page_content
                             )
                             if original_verbatim:
+                                idx.add(doc_id)
                                 docs[doc_id].metadata["verbatims"] = original_verbatim
+                            elif "verbatims" not in docs[doc_id].metadata:
+                                logger.debug(f"Verbatim not confirmed in original document\n{ref_doc.verbatims}")
+                                # docs[doc_id].metadata["verbatims"] =ref_doc.verbatims
             return idx
         except OutputParserException as e:
             logger.debug(f"Exception during parsing: {e}")
-            return idx
+            # return idx
+            raise
 
     @classmethod
     def from_llm(

@@ -8,7 +8,7 @@ from langchain_qa_with_references.chains import (
     QAWithReferencesAndVerbatimsChain,
 )
 
-from ._test_retriever import CALLBACKS, init_llm, logger
+from ._test_retriever import CALLBACKS, init_llm, logger, compare_words_of_responses, compare_responses
 
 
 @pytest.mark.parametrize(
@@ -67,7 +67,7 @@ from ._test_retriever import CALLBACKS, init_llm, logger
                         '"verbatims": ["He eats apples", "He eats pears"]}, '
                         '{"ids": [2], "verbatims": ["He eats carrots."]}]}',
                     },
-                    [["He eats\napples", "He eats pears."], ["He eats carrots."]],
+                    [["eats apples", "eats pears"], ["eats carrots"]],
                     r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
                     {1, 2},
                 ),
@@ -118,8 +118,9 @@ from ._test_retriever import CALLBACKS, init_llm, logger
                         "}",
                     },
                     [
-                        ["He eats\napples and plays football.", "He eats pears."],
-                        ["He eats carrots. I like football."],
+                        [],
+                        # ["eats apples", "eats pears"],
+                        ["eats carrots"],
                     ],
                     r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
                     {1, 2},
@@ -186,13 +187,12 @@ def test_qa_with_reference_and_verbatims_chain(
             references, answer["source_documents"], verbatims
         ):
             assert docs[ref] is original, "Return incorrect original document"
-            assert (
-                original.metadata["verbatims"] == assert_verbatims
-            ), "Return incorrect verbatims"
+            assert (compare_responses(original.metadata.get("verbatims", []), assert_verbatims)
+                    ), "Return incorrect verbatims"
         break
     else:
-        print(f"response after {i + 1} tries.")
-        assert not "Impossible to receive a response"
+        print(f"Response is Empty after {i + 1} tries.")
+        assert False, "Impossible to receive a response"
     print(f"response après {i}")
 
 

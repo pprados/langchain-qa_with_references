@@ -31,7 +31,7 @@ def _extract_original_verbatim(verbatim: str, page_content: str) -> Optional[str
 
 
 class VerbatimsFromDoc(BaseModel):
-    ids: List[int]
+    ids: List[str]
     """ The position of the document in the original list """
     verbatims: List[str]
     """ All verbatims for this document """

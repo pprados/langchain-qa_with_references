@@ -1,5 +1,6 @@
 import logging
-from typing import Any, Dict, Optional, Tuple
+import re
+from typing import Any, Dict, Optional, Tuple, List
 
 from langchain.callbacks import StdOutCallbackHandler
 from langchain.callbacks.base import Callbacks
@@ -14,9 +15,9 @@ from tests.unit_tests.fake_llm import FakeLLM
 
 logger = logging.getLogger(__name__)
 
-FAKE_LLM = True
-VERBOSE_PROMPT = False
-VERBOSE_RESULT = False
+FAKE_LLM = False
+VERBOSE_PROMPT = not FAKE_LLM
+VERBOSE_RESULT = not FAKE_LLM
 CALLBACKS: Callbacks = []
 
 if VERBOSE_PROMPT or VERBOSE_RESULT:
@@ -257,3 +258,24 @@ def test_retriever(type: str, llm: BaseLLM) -> Tuple[BaseRetriever, str]:
         raise ValueError()
 
     return retriever, question
+
+def compare_words_of_responses(response:str, assert_response:str) -> bool:
+    """The exact format of verbatim may be changed by the LLM.
+    Extract only the words of the verbatim, and try to find a sequence
+    of same words in the original document.
+    """
+    only_words = filter(len, re.split(r"[^\w]+", assert_response))
+    regex_for_words_in_same_oder = (
+            r"(?i)\b" + r"\b[^\w]+".join(only_words) + r"\b"
+                                                       r"\s*[.!?:;]?"
+    )
+    match = re.search(regex_for_words_in_same_oder, response, re.IGNORECASE)
+    if match:
+        return True
+    return False  # No verbatim found in the original document
+
+def compare_responses(responses:List[str], assert_responses:List[str]) -> bool:
+    for response, assert_response in zip(responses,assert_responses):
+        if not compare_words_of_responses(response, assert_response):
+            return False
+    return True

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+import re
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Set, Tuple, cast
 
@@ -36,6 +37,7 @@ from .map_reduce_prompts import (
 from .references import references_parser
 
 logger = logging.getLogger(__name__)
+
 
 
 # TOTRY: Add in VectorStoreIndexWrapper.query_with_references()
@@ -143,9 +145,16 @@ class BaseQAWithReferencesChain(Chain, ABC):
         # With the map_rerank mode, use extra parameter for map_rerank to identify
         # the corresponding document.
         if "_idx" in answers:
-            references.documents.append(answers["_idx"])
+            references.documents.add(answers["_idx"])
 
-        return references.documents
+        ids=set()
+        for str_doc_id in references.documents:
+            m=re.match("_idx_(\d+)", str_doc_id)
+            if m:
+                ids.add(int(m[1]))
+            else:
+                pass
+        return ids
 
     def _process_results(
         self,
@@ -180,7 +189,7 @@ class BaseQAWithReferencesChain(Chain, ABC):
             references = parser.parse(answer)
             answer = references.response
 
-            idx = set(self._process_reference(answers, docs, references))
+            idx = self._process_reference(answers, docs, references)
 
             # Purge _idx
             for doc in docs:
@@ -220,8 +229,9 @@ class BaseQAWithReferencesChain(Chain, ABC):
             docs = self._get_docs(inputs)  # type: ignore[call-arg]
 
         # Inject position in the list
+        # To avoid confusion with other id, add a prefix
         for idx, doc in enumerate(docs):
-            doc.metadata["_idx"] = idx
+            doc.metadata["_idx"] = f"_idx_{idx}"
 
         answers = self.combine_documents_chain(
             {

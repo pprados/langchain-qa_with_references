@@ -42,13 +42,13 @@ Process step by step:
 QUESTION: Which state/country's law governs the interpretation of the contract?
 =========
 Content: This Agreement is governed by English law
-ids: 0,1
+ids: _idx_0,_idx_1
 Content: 
-ids: 2
+ids: _idx_2
 Content: 
-ids: 3
+ids: _idx_3
 Content: The english law is applicable for this agreement.
-ids:4
+ids:_idx_4
 =========
 FINAL ANSWER:
 {response_example_1}
@@ -57,13 +57,13 @@ QUESTION: What did the president say about Michael Jackson?
 =========
 Content: "Madam Speaker, Madam Vice President, our First Lady and Second "
 "Gentleman. Members of Congress and the Cabinet."
-ids: 0
+ids: _idx_0
 Content: 
-ids: 1,2
+ids: _idx_1,_idx_2
 Content: 
-ids: 3
+ids: _idx_3
 Content: 
-ids: 4
+ids: _idx_4
 =========
 FINAL ANSWER: 
 {response_example_2}
