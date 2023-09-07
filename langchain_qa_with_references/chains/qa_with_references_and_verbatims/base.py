@@ -48,7 +48,11 @@ class BaseQAWithReferencesAndVerbatimsChain(BaseQAWithReferencesChain):
             # Inject verbatims and get idx
             for ref_doc in verbatims.documents:
                 for str_doc_id in ref_doc.ids:
-                    doc_id=int(re.match("_idx_(\d+)",str_doc_id)[1])
+                    m=re.match("_idx_(\d+)",str_doc_id)
+                    if not m:
+                        logger.debug(f"Detected invalide ids '{str_doc_id}'")
+                        continue
+                    doc_id=int(m[1])
                     if 0 <= doc_id < len(docs):  # Guard
                         if ref_doc.verbatims:
                             # Search the real verbatim if possible

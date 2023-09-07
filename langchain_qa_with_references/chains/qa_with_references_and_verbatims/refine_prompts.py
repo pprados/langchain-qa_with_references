@@ -19,6 +19,7 @@ Given the context information the question: {question}
 If you don't know the answer, just say that you don't know and does not extract any verbatim. 
 Don't try to make up an answer.
 
+The ids must be only in the form '_idx_<number>'.
 {format_instructions}
 """
 

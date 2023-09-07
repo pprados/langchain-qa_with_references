@@ -63,6 +63,7 @@ QUESTION: {question}
 =========
 {summaries}
 =========
+The ids must be only in the form '_idx_<number>'.
 {format_instructions}
 FINAL ANSWER: 
 """

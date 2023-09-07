@@ -155,6 +155,7 @@ from ._test_retriever import CALLBACKS, init_llm, logger, compare_words_of_respo
     ],
 )
 @pytest.mark.parametrize("chain_type", ["stuff", "map_reduce", "refine", "map_rerank"])
+# @pytest.mark.parametrize("chain_type", ["map_reduce", ])
 def test_qa_with_reference_and_verbatims_chain(
     question: str,
     docs: List[Document],
@@ -166,7 +167,7 @@ def test_qa_with_reference_and_verbatims_chain(
     queries, verbatims, expected_answer, references = map_responses[chain_type]
     llm = init_llm(queries)
 
-    for i in range(0, 1):  # Retry if empty ?
+    for i in range(0, 3):  # Retry if empty ?
         qa_chain = QAWithReferencesAndVerbatimsChain.from_chain_type(
             llm=llm,
             chain_type=chain_type,
@@ -181,6 +182,7 @@ def test_qa_with_reference_and_verbatims_chain(
         answer_of_question = answer["answer"]
         if not answer_of_question:
             logger.warning("Return nothing. Retry")
+            llm.cache = False
             continue
         assert re.match(expected_answer, answer_of_question)
         for ref, original, assert_verbatims in zip(

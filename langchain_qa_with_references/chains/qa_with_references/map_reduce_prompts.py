@@ -19,6 +19,7 @@ Use the following portion of a long document to see if any of the text is releva
 Question: {question}
 
 Extract all verbatims from texts relevant to answering the question in separate strings else output an empty array.
+The ids must be only in the form '_idx_<number>'.
 {format_instructions}
 
 """

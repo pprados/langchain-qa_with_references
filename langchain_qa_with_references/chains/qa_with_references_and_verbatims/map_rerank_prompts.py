@@ -46,6 +46,7 @@ Process step by step:
 
 
 Here the format for the Helpful Answer.
+The ids must be only in the form '_idx_<number>'.
 {format_instructions}
 
 This should be in the following format:

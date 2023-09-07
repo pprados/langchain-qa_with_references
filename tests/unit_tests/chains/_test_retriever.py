@@ -16,7 +16,7 @@ from tests.unit_tests.fake_llm import FakeLLM
 logger = logging.getLogger(__name__)
 
 FAKE_LLM = False
-VERBOSE_PROMPT = not FAKE_LLM
+VERBOSE_PROMPT = False
 VERBOSE_RESULT = not FAKE_LLM
 CALLBACKS: Callbacks = []
 
