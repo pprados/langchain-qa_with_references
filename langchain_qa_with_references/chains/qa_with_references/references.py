@@ -1,20 +1,18 @@
 import logging
-from typing import List, Set
+import re
+from typing import Set
 
 from langchain.output_parsers import PydanticOutputParser, RegexParser
-
 # Impossible to import in experimental. bug in the CI
 from langchain.pydantic_v1 import BaseModel
-
 # from pydantic import BaseModel
 from langchain.schema import BaseOutputParser
-from pydantic import Field
 
 logger = logging.getLogger(__name__)
 
 # To optimize the consumption of tokens, it's better to use only 'text', without json.
 # Else the schema consume ~300 tokens and the response 20 tokens by step
-_OPTIMIZE = False
+_OPTIMIZE = True
 
 
 class References(BaseModel):
@@ -29,7 +27,7 @@ class References(BaseModel):
 
     def __str__(self) -> str:
         if _OPTIMIZE:
-            return f'{self.response}\nIDS:{",".join(map(str,self.documents))}'
+            return f'{self.response}\nIDS:{",".join(map(str, self.documents))}'
         else:
             return self.json()
 
@@ -48,10 +46,15 @@ if _OPTIMIZE:
         def parse(self, text: str) -> References:
             dict = super().parse(text)
             if dict["ids"]:
-                ids = [int(d) for d in map(str, dict["ids"].split(","))]
+                ids = set()
+                for str_doc_id in dict["ids"].split(","):
+                    m = re.match("_idx_(\d+)", str_doc_id)
+                    if m:
+                        set.add(int(m[1]))
             else:
                 ids = []
             return References(response=dict["response"], documents=ids)
+
 
     references_parser = _ReferencesParser(
         regex=r"(.*)\nIDS:(.*)",
