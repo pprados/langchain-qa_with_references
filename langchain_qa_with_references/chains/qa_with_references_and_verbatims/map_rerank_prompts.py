@@ -38,7 +38,7 @@ How to determine the score:
 - Don't be overconfident!
 
 Process step by step:
-- extract the references ("IDS")
+- extract the references ("IDX")
 - extract all the verbatims from the texts only if they are relevant to answering the question, in a list of strings 
 - answers the question
 - calculates a score of how fully it answered the user's question

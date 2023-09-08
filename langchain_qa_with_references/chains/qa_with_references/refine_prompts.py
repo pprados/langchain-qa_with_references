@@ -9,13 +9,13 @@ Context information is below.
 ---------------------
 Process step by step:
 - ignore prior knowledge
-- extract references ("IDS")
+- extract references ("IDX")
 - create a final answer
 - produce the json result
 
 Given the context information the question: {question}
 
-If you don't know the answer, just say that you don't know. 
+If you don't know the answer, just say that you don't know, without references. 
 Don't try to make up an answer.
 
 The ids must be only in the form '_idx_<number>'.
@@ -32,7 +32,6 @@ INITIAL_QA_PROMPT = PromptTemplate(
 )
 
 _refine_prompt_template = """
-Use the following portion from several documents to see if any of the text is relevant to answer the question. 
 Given the context information and not prior knowledge answer, the question: {question}
 
 We have provided an existing JSON answer with the list of documents with associated ids: 
@@ -47,12 +46,13 @@ If you don't know how to refine the original answer, does not modify the answer.
 
 Process step by step:
 - ignore prior knowledge
-- with the new context extract references of the new context ("IDS")
-- refine the original answer to better answer the question. ONLY if you do update it, append the new IDS and verbatims of texts from the existing answser IDS as well. 
+- with the new context extract references of the new context ("IDX")
+- refine the original answer to better answer the question. ONLY if you do update it
+- append the new IDX from the existing answser IDX as well. 
 - create a final answer
-- produce the json result
+- produce the result
 
-ALWAYS return a "IDS" part in your answer. 
+ALWAYS return a "IDX" part in your answer. 
 If the context isn't useful, return the original answer.
 
 If you don't know the answer, just say that you don't know. Don't try to make up an answer.

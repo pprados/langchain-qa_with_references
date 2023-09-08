@@ -2,7 +2,7 @@ import re
 from typing import Dict, List, Set, Tuple
 
 import pytest
-from langchain.schema import Document
+from langchain.schema import Document, OutputParserException
 
 from langchain_qa_with_references.chains import QAWithReferencesChain
 from ._tools_qa_with_references import CALLBACKS, init_llm, logger
@@ -37,7 +37,7 @@ from ._tools_qa_with_references import CALLBACKS, init_llm, logger
                             {
                                 0: '```\n'
                                    'He eats apples, pears and carrots.\n'
-                                   'IDS: _idx_1, _idx_2\n'
+                                   'IDX: _idx_1, _idx_2\n'
                                    '```\n',
                             },
                             r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
@@ -50,7 +50,7 @@ from ._tools_qa_with_references import CALLBACKS, init_llm, logger
                                 2: 'Output: {"lines": ["_idx_1: He eats carrots."]}',
                                 3: 'Output: {"lines": []}',
                                 4: ' He eats apples, pears, and carrots.\n'
-                                   'IDS: _idx_1, _idx_3, _idx_2\n',
+                                   'IDX: _idx_1, _idx_3, _idx_2\n',
                             },
                             r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
                             {1, 2},
@@ -58,9 +58,9 @@ from ._tools_qa_with_references import CALLBACKS, init_llm, logger
                     "refine": (
                             {
                                 0: "I don't know.",
-                                1: "Answer: He eats apples and pears. (IDS: _idx_1)",
-                                2: "Answer: He eats apples, pears, and carrots. (IDS: _idx_1, _idx_2)",
-                                3: "Answer: He eats apples, pears, and carrots. (IDS: _idx_1, _idx_2, _idx_3)",
+                                1: "Answer: He eats apples and pears. (IDX: _idx_1)",
+                                2: "Answer: He eats apples, pears, and carrots. (IDX: _idx_1, _idx_2)",
+                                3: "Answer: He eats apples, pears, and carrots. (IDX: _idx_1, _idx_2, _idx_3)",
                             },
                             r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
                             {1, 2},
@@ -94,36 +94,41 @@ def test_qa_with_reference_chain(
     queries, expected_answer, references = map_responses[chain_type]
     llm = init_llm(queries)
 
-    for i in range(0, 1):  # Retry if empty ?
-        qa_chain = QAWithReferencesChain.from_chain_type(
-            llm=llm,
-            chain_type=chain_type,
-        )
-        answer = qa_chain(
-            inputs={
-                "docs": docs,
-                "question": question,
-            },
-            callbacks=CALLBACKS,
-        )
-        answer_of_question = answer["answer"]
-        if not answer_of_question:
-            logger.warning("Return nothing. Retry")
-            continue
-        assert re.match(expected_answer, answer_of_question)
-        for ref, original in zip(references, answer["source_documents"]):
-            assert docs[ref] is original, "Return incorrect original document"
-        break
+    for i in range(0, 2):  # Retry if error ?
+        try:
+            qa_chain = QAWithReferencesChain.from_chain_type(
+                llm=llm,
+                chain_type=chain_type,
+            )
+            answer = qa_chain(
+                inputs={
+                    "docs": docs,
+                    "question": question,
+                },
+                callbacks=CALLBACKS,
+            )
+            answer_of_question = answer["answer"]
+            if not answer_of_question:
+                logger.warning("Return nothing. Retry")
+                continue
+            assert re.match(expected_answer, answer_of_question)
+            for ref, original in zip(references, answer["source_documents"]):
+                assert docs[ref] is original, "Return incorrect original document"
+            break
+        except OutputParserException:
+            llm.cache = False
+            logger.warning('Parsing error. Retry')
+            continue  # Retry
+
     else:
         print(f"response after {i + 1} tries.")
-        assert not "Impossible to receive a response"
-    print(f"response après {i}")
+        assert not "Impossible to receive a correct response"
 
 
 @pytest.mark.skip(reason="Disabled, because the test invokes open")
 @pytest.mark.parametrize("chain_type", ["stuff", "map_reduce", "refine", "map_rerank"])
 def test_qa_with_reference_chain_and_retriever(chain_type: str) -> None:
-    from ._test_retriever import CALLBACKS, FAKE_LLM, init_llm, test_retriever
+    from ._tools_qa_with_references import CALLBACKS, FAKE_LLM, init_llm, test_retriever
 
     assert not FAKE_LLM
     type = "google"

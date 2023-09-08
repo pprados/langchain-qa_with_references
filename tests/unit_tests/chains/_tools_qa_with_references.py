@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 FAKE_LLM = False
 VERBOSE_PROMPT = False
 VERBOSE_RESULT = True
-USE_CACHE = True
+USE_CACHE = False
 CALLBACKS: Callbacks = []
 
 if VERBOSE_PROMPT or VERBOSE_RESULT:
@@ -86,7 +86,7 @@ def init_llm(queries: Dict[int, str]) -> BaseLLM:
                 database_path="/tmp/cache_qa_with_reference.db"
             )
         llm = langchain.OpenAI(
-            # temperature=0.5,
+            temperature=0.5,
             # cache=False,
             max_tokens=2000,
         )

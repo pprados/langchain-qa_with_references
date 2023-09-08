@@ -27,7 +27,7 @@ class References(BaseModel):
 
     def __str__(self) -> str:
         if _OPTIMIZE:
-            return f'{self.response}\nIDS:{",".join(map(str, self.documents))}'
+            return f'{self.response}\nIDX:{",".join(map(str, self.documents))}'
         else:
             return self.json()
 
@@ -57,7 +57,7 @@ if _OPTIMIZE:
 
 
     references_parser = _ReferencesParser(
-        regex=r"(.*)\nIDS:(.*)",
+        regex=r"(.*)\nIDX:(.*)",
         output_keys=["response", "ids"],
         default_output_key="response",
     )

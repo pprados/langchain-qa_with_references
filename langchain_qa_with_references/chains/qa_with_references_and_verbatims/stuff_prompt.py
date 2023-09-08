@@ -29,13 +29,13 @@ _response_example_2 = Verbatims(response="I don't know.", documents=[])
 _template = """Given the following extracts from several documents, a question and not prior knowledge. 
 Process step by step:
 - for each documents:
-    - extract the references ("IDS")
+    - extract the references ("IDX")
     - extract all the verbatims from the texts only if they are relevant to answering the question, in a list of strings  
 - creates a final answer
 - produces the json result
 
 If you don't know the answer, just say that you don't know. Don't try to make up an answer.
-ALWAYS return a "IDS" part in your answer.
+ALWAYS return a "IDX" part in your answer.
 
 QUESTION: Which state/country's law governs the interpretation of the contract?
 =========

@@ -45,18 +45,6 @@ class BaseQAWithReferencesAndVerbatimsChain(BaseQAWithReferencesChain):
                 # Fix the ids of the selected document.
                 verbatims.documents[0].ids = [answers["_idx"]]
 
-            # With the map_reduce mode, we must inject the associated idx.
-            # if self.chain_type == "map_reduce":
-            #     parser_doc = cast(
-            #         Any, self.combine_documents_chain
-            #     ).llm_chain.prompt.output_parser
-            #     for i, str_verbatim in enumerate(answers["intermediate_steps"]):
-            #         doc_ref = parser_doc.parse(str_verbatim)
-            #         doc_ref.ids=docs[i].metadata["_idx"]
-            #         # for d in verbatims.documents:
-            #         #     if not d.ids: # FIXME d.verbatims == doc_ref.verbatims:
-            #         #         d.ids = [docs[i].metadata["_idx"]]
-
             # Inject verbatims and get idx
             for ref_doc in verbatims.documents:
                 for str_doc_id in ref_doc.ids:
