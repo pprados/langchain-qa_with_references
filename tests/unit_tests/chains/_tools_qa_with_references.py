@@ -15,20 +15,21 @@ from tests.unit_tests.fake_llm import FakeLLM
 
 logger = logging.getLogger(__name__)
 
-FAKE_LLM = True
+FAKE_LLM = False
 VERBOSE_PROMPT = False
-VERBOSE_RESULT = not FAKE_LLM
+VERBOSE_RESULT = True
+USE_CACHE = True
 CALLBACKS: Callbacks = []
 
 if VERBOSE_PROMPT or VERBOSE_RESULT:
 
     class ExStdOutCallbackHandler(StdOutCallbackHandler):
         def on_text(
-            self,
-            text: str,
-            color: Optional[str] = None,
-            end: str = "",
-            **kwargs: Any,
+                self,
+                text: str,
+                color: Optional[str] = None,
+                end: str = "",
+                **kwargs: Any,
         ) -> None:
             if VERBOSE_PROMPT:
                 print("====")
@@ -62,6 +63,7 @@ if VERBOSE_PROMPT or VERBOSE_RESULT:
                 else:
                     pass
 
+
     CALLBACKS = [ExStdOutCallbackHandler()]
 
 
@@ -79,9 +81,10 @@ def init_llm(queries: Dict[int, str]) -> BaseLLM:
 
         load_dotenv()
 
-        langchain.llm_cache = SQLiteCache(
-            database_path="/tmp/cache_qa_with_reference.db"
-        )
+        if USE_CACHE:
+            langchain.llm_cache = SQLiteCache(
+                database_path="/tmp/cache_qa_with_reference.db"
+            )
         llm = langchain.OpenAI(
             # temperature=0.5,
             # cache=False,
@@ -94,11 +97,11 @@ def init_llm(queries: Dict[int, str]) -> BaseLLM:
 # %% -----------
 # Simulate new methods for VectorStoreIndexWrapper
 def query_with_reference(
-    self: VectorStoreIndexWrapper,
-    question: str,
-    llm: Optional[BaseLanguageModel] = None,
-    retriever_kwargs: Optional[Dict[str, Any]] = None,
-    **kwargs: Any,
+        self: VectorStoreIndexWrapper,
+        question: str,
+        llm: Optional[BaseLanguageModel] = None,
+        retriever_kwargs: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
 ) -> dict:
     """Query the vectorstore and get back sources."""
     # from langchain_qa_with_references.chains import RetrievalQAWithReferencesChain
@@ -115,18 +118,19 @@ def query_with_reference(
 
 
 def query_with_reference_and_verbatims(
-    self: VectorStoreIndexWrapper,
-    question: str,
-    llm: Optional[BaseLanguageModel] = None,
-    retriever_kwargs: Optional[Dict[str, Any]] = None,
-    **kwargs: Any,
+        self: VectorStoreIndexWrapper,
+        question: str,
+        llm: Optional[BaseLanguageModel] = None,
+        retriever_kwargs: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
 ) -> dict:
     """Query the vectorstore and get back sources."""
     # from langchain_qa_with_references.chains import \
     #     RetrievalQAWithReferencesAndVerbatimsChain
     from langchain import OpenAI
 
-    from langchain_qa_with_references.chains import RetrievalQAWithReferencesAndVerbatimsChain
+    from langchain_qa_with_references.chains import \
+        RetrievalQAWithReferencesAndVerbatimsChain
 
     llm = llm or OpenAI(temperature=0)
     retriever_kwargs = retriever_kwargs or {}
@@ -175,12 +179,12 @@ def _test_loader(type: str, llm: BaseLLM) -> BaseLoader:
 
 
 def _test_index(
-    type: str,
-    llm: BaseLLM,
-    text_splitter: TextSplitter = MarkdownTextSplitter(
-        chunk_size=1500, chunk_overlap=100, length_function=len
-    ),
-    embedding=None,
+        type: str,
+        llm: BaseLLM,
+        text_splitter: TextSplitter = MarkdownTextSplitter(
+            chunk_size=1500, chunk_overlap=100, length_function=len
+        ),
+        embedding=None,
 ) -> VectorStoreIndexWrapper:
     from langchain.embeddings import HuggingFaceEmbeddings
 
@@ -216,7 +220,13 @@ def test_retriever(type: str, llm: BaseLLM) -> Tuple[BaseRetriever, str]:
             embedding_function=OpenAIEmbeddings(),
             persist_directory="/tmp/chroma_db_oai",
         )
-        vectorstore.add_documents(wikipedia_retriever.get_relevant_documents(question))
+        docs = wikipedia_retriever.get_relevant_documents(question)
+        from langchain.text_splitter import RecursiveCharacterTextSplitter
+        split_docs = RecursiveCharacterTextSplitter(
+            chunk_size=500, chunk_overlap=50
+        ).split_documents(docs)
+
+        vectorstore.add_documents(split_docs)
         retriever = vectorstore.as_retriever()
     elif type == "google":
         import dotenv
@@ -259,7 +269,8 @@ def test_retriever(type: str, llm: BaseLLM) -> Tuple[BaseRetriever, str]:
 
     return retriever, question
 
-def compare_words_of_responses(response:str, assert_response:str) -> bool:
+
+def compare_words_of_responses(response: str, assert_response: str) -> bool:
     """The exact format of verbatim may be changed by the LLM.
     Extract only the words of the verbatim, and try to find a sequence
     of same words in the original document.
@@ -274,8 +285,9 @@ def compare_words_of_responses(response:str, assert_response:str) -> bool:
         return True
     return False  # No verbatim found in the original document
 
-def compare_responses(responses:List[str], assert_responses:List[str]) -> bool:
-    for response, assert_response in zip(responses,assert_responses):
+
+def compare_responses(responses: List[str], assert_responses: List[str]) -> bool:
+    for response, assert_response in zip(responses, assert_responses):
         if not compare_words_of_responses(response, assert_response):
             return False
     return True

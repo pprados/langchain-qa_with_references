@@ -3,6 +3,7 @@
 from langchain.output_parsers import PydanticOutputParser
 from langchain.prompts import PromptTemplate
 from langchain.schema import BaseOutputParser
+
 from .verbatims import VerbatimsFromDoc, verbatims_parser, Verbatims
 
 _map_verbatim_parser: BaseOutputParser = PydanticOutputParser(
@@ -21,7 +22,8 @@ _response_example_1 = Verbatims(
             ],
         ),
         VerbatimsFromDoc(
-            ids=['_idx_4'], verbatims=["The english law is applicable for this agreement."]
+            ids=['_idx_4'],
+            verbatims=["The english law is applicable for this agreement."]
         ),
     ],
 )
@@ -56,8 +58,7 @@ Use the following portion of a long document to see if any of the text is releva
 
 Question: {question}
 
-Extract all verbatims from texts relevant to answering the question in a list of strings  else output an empty array.
-The ids must be only in the form '_idx_<number>'.
+Extract all verbatims from texts relevant to answering the question in a list of strings else output an empty array.
 {format_instructions}
 
 """
@@ -71,13 +72,12 @@ QUESTION_PROMPT = PromptTemplate(
     output_parser=_map_verbatim_parser,
 )
 
-
 _combine_prompt_template = """Given the following extracts from several documents, 
 a question and not prior knowledge. 
 
 Process step by step:
-- extract all the verbatims from the texts relevant to answering the question in separate strings  else output an empty array.
-- creates a final answer
+- extract all verbatims
+- create a final response with these verbatims
 - produces the json result
 
 QUESTION: Which state/country's law governs the interpretation of the contract?
@@ -104,6 +104,7 @@ QUESTION: {question}
 =========
 {summaries}
 =========
+If you are not confident with your answer, say 'I don't know'. 
 {format_instructions}
 FINAL ANSWER:"""
 COMBINE_PROMPT = PromptTemplate(

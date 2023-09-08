@@ -5,7 +5,7 @@ import pytest
 from langchain.schema import Document
 
 from langchain_qa_with_references.chains import QAWithReferencesChain
-from ._test_retriever import CALLBACKS, init_llm, logger
+from ._tools_qa_with_references import CALLBACKS, init_llm, logger
 
 
 @pytest.mark.parametrize(

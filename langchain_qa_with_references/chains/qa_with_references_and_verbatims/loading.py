@@ -21,18 +21,18 @@ class LoadingCallable(Protocol):
     """Interface for loading the combine documents chain."""
 
     def __call__(
-        self, llm: BaseLanguageModel, **kwargs: Any
+            self, llm: BaseLanguageModel, **kwargs: Any
     ) -> BaseCombineDocumentsChain:
         """Callable to load the combine documents chain."""
 
 
 def _load_stuff_chain(
-    llm: BaseLanguageModel,
-    prompt: BasePromptTemplate = stuff_prompt.PROMPT,
-    document_prompt: BasePromptTemplate = stuff_prompt.EXAMPLE_PROMPT,
-    document_variable_name: str = "summaries",
-    verbose: Optional[bool] = None,
-    **kwargs: Any,
+        llm: BaseLanguageModel,
+        prompt: BasePromptTemplate = stuff_prompt.PROMPT,
+        document_prompt: BasePromptTemplate = stuff_prompt.EXAMPLE_PROMPT,
+        document_variable_name: str = "summaries",
+        verbose: Optional[bool] = None,
+        **kwargs: Any,
 ) -> stuff.StuffDocumentsChain:
     llm_chain = LLMChain(llm=llm, prompt=prompt, verbose=verbose)
 
@@ -46,17 +46,17 @@ def _load_stuff_chain(
 
 
 def _load_map_reduce_chain(
-    llm: BaseLanguageModel,
-    question_prompt: BasePromptTemplate = map_reduce_prompts.QUESTION_PROMPT,
-    combine_prompt: BasePromptTemplate = map_reduce_prompts.COMBINE_PROMPT,
-    document_prompt: BasePromptTemplate = map_reduce_prompts.EXAMPLE_PROMPT,
-    combine_document_variable_name: str = "summaries",
-    map_reduce_document_variable_name: str = "context",
-    collapse_prompt: Optional[BasePromptTemplate] = None,
-    reduce_llm: Optional[BaseLanguageModel] = None,
-    collapse_llm: Optional[BaseLanguageModel] = None,
-    verbose: Optional[bool] = None,
-    **kwargs: Any,
+        llm: BaseLanguageModel,
+        question_prompt: BasePromptTemplate = map_reduce_prompts.QUESTION_PROMPT,
+        combine_prompt: BasePromptTemplate = map_reduce_prompts.COMBINE_PROMPT,
+        document_prompt: BasePromptTemplate = map_reduce_prompts.EXAMPLE_PROMPT,
+        combine_document_variable_name: str = "summaries",
+        map_reduce_document_variable_name: str = "context",
+        collapse_prompt: Optional[BasePromptTemplate] = None,
+        reduce_llm: Optional[BaseLanguageModel] = None,
+        collapse_llm: Optional[BaseLanguageModel] = None,
+        verbose: Optional[bool] = None,
+        **kwargs: Any,
 ) -> map_reduce.MapReduceDocumentsChain:
     map_chain = LLMChain(llm=llm, prompt=question_prompt, verbose=verbose)
     _reduce_llm = reduce_llm or llm
@@ -97,15 +97,15 @@ def _load_map_reduce_chain(
 
 
 def _load_refine_chain(
-    llm: BaseLanguageModel,
-    question_prompt: BasePromptTemplate = refine_prompts.INITIAL_QA_PROMPT,
-    refine_prompt: BasePromptTemplate = refine_prompts.REFINE_PROMPT,
-    document_prompt: BasePromptTemplate = refine_prompts.EXAMPLE_PROMPT,
-    document_variable_name: str = "context_str",
-    initial_response_name: str = "existing_answer",
-    refine_llm: Optional[BaseLanguageModel] = None,
-    verbose: Optional[bool] = None,
-    **kwargs: Any,
+        llm: BaseLanguageModel,
+        question_prompt: BasePromptTemplate = refine_prompts.INITIAL_QA_PROMPT,
+        refine_prompt: BasePromptTemplate = refine_prompts.REFINE_PROMPT,
+        document_prompt: BasePromptTemplate = refine_prompts.EXAMPLE_PROMPT,
+        document_variable_name: str = "context_str",
+        initial_response_name: str = "existing_answer",
+        refine_llm: Optional[BaseLanguageModel] = None,
+        verbose: Optional[bool] = None,
+        **kwargs: Any,
 ) -> refine.RefineDocumentsChain:
     initial_chain = LLMChain(llm=llm, prompt=question_prompt, verbose=verbose)
     _refine_llm = refine_llm or llm
@@ -123,13 +123,13 @@ def _load_refine_chain(
 
 
 def _load_map_rerank_chain(
-    llm: BaseLanguageModel,
-    prompt: BasePromptTemplate = map_rerank_prompts.PROMPT,
-    verbose: bool = False,
-    document_variable_name: str = "context",
-    rank_key: str = "score",
-    answer_key: str = "answer",
-    **kwargs: Any,
+        llm: BaseLanguageModel,
+        prompt: BasePromptTemplate = map_rerank_prompts.PROMPT,
+        verbose: bool = False,
+        document_variable_name: str = "context",
+        rank_key: str = "score",
+        answer_key: str = "answer",
+        **kwargs: Any,
 ) -> map_rerank.MapRerankDocumentsChain:
     llm_chain = LLMChain(llm=llm, prompt=prompt, verbose=verbose)
     if "metadata_keys" in kwargs:
@@ -148,10 +148,10 @@ def _load_map_rerank_chain(
 
 
 def load_qa_with_references_chain(
-    llm: BaseLanguageModel,
-    chain_type: str = "stuff",
-    verbose: Optional[bool] = None,
-    **kwargs: Any,
+        llm: BaseLanguageModel,
+        chain_type: str = "stuff",
+        verbose: Optional[bool] = None,
+        **kwargs: Any,
 ) -> BaseCombineDocumentsChain:
     """Load question answering with only referenced documents and verbatims.
 
@@ -184,10 +184,10 @@ def load_qa_with_references_chain(
 
 
 def load_qa_with_references_and_retriever_chain(
-    llm: BaseLanguageModel,
-    chain_type: str = "stuff",
-    verbose: Optional[bool] = None,
-    **kwargs: Any,
+        llm: BaseLanguageModel,
+        chain_type: str = "stuff",
+        verbose: Optional[bool] = None,
+        **kwargs: Any,
 ) -> BaseCombineDocumentsChain:
     """Load question answering with only referenced documents and verbatims.
 

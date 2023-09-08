@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 # To optimize the consumption of tokens, it's better to use only 'text', without json.
 # Else the schema consume ~300 tokens and the response 20 tokens by step
-_OPTIMIZE = True
+_OPTIMIZE = False
 
 
 class References(BaseModel):

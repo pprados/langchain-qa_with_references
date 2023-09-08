@@ -2,6 +2,7 @@
 from langchain.output_parsers import PydanticOutputParser, RegexParser
 from langchain.prompts import PromptTemplate
 from langchain.schema import BaseOutputParser
+
 from .verbatims import VerbatimsFromDoc, Verbatims
 
 _map_verbatim_parser: BaseOutputParser = PydanticOutputParser(
@@ -12,7 +13,6 @@ _rank_parser = RegexParser(
     regex=r"(.*?)\nScore: (\d*)",
     output_keys=["answer", "score"],
 )
-
 
 _response_example_1 = Verbatims(
     response="red", documents=[VerbatimsFromDoc(ids=[99], verbatims=["Apples are red"])]

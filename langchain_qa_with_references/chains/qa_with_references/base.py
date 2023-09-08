@@ -1,7 +1,5 @@
 """Question answering with references over documents."""
 
-from __future__ import annotations
-
 import inspect
 import logging
 import re
@@ -61,7 +59,7 @@ class BaseQAWithReferencesChain(Chain, ABC):
         question_prompt: BasePromptTemplate = QUESTION_PROMPT,
         combine_prompt: BasePromptTemplate = COMBINE_PROMPT,
         **kwargs: Any,
-    ) -> BaseQAWithReferencesChain:
+    ) -> 'BaseQAWithReferencesChain':
         """Construct the chain from an LLM."""
         llm_question_chain = LLMChain(llm=llm, prompt=question_prompt)
         llm_combine_chain = LLMChain(llm=llm, prompt=combine_prompt)
@@ -88,7 +86,7 @@ class BaseQAWithReferencesChain(Chain, ABC):
         chain_type: str = "stuff",
         chain_type_kwargs: Optional[dict] = None,
         **kwargs: Any,
-    ) -> BaseQAWithReferencesChain:
+    ) -> 'BaseQAWithReferencesChain':
         """Load chain from chain type."""
         _chain_kwargs = chain_type_kwargs or {}
         combine_document_chain = load_qa_with_references_chain(
