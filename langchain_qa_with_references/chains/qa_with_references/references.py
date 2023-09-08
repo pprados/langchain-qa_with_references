@@ -2,9 +2,11 @@ import logging
 import re
 from typing import Set
 
-from langchain.output_parsers import PydanticOutputParser, RegexParser
+from langchain.output_parsers import PydanticOutputParser
+
 # Impossible to import in experimental. bug in the CI
 from langchain.pydantic_v1 import BaseModel
+
 # from pydantic import BaseModel
 from langchain.schema import BaseOutputParser
 
@@ -12,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 # To optimize the consumption of tokens, it's better to use only 'text', without json.
 # Else the schema consume ~300 tokens and the response 20 tokens by step
-_OPTIMIZE = False
+_OPTIMIZE = True
 
 
 class References(BaseModel):
@@ -35,31 +37,41 @@ class References(BaseModel):
 references_parser: BaseOutputParser
 if _OPTIMIZE:
 
-    class _ReferencesParser(RegexParser):
+    class _ReferencesParser(BaseOutputParser):
         """An optimised parser for Reference.
         It's more effective than the pydantic approach
         """
 
+        @property
+        def lc_serializable(self) -> bool:
+            return True
+
+        @property
+        def _type(self) -> str:
+            """Return the type key."""
+            return "reference_parser"
+
         def get_format_instructions(self) -> str:
-            return ""
+            return (
+                "Your response should be in the form:\n"
+                "Answer:the response\n"
+                "IDX: a comma separated list of ids"
+            )
 
         def parse(self, text: str) -> References:
-            dict = super().parse(text)
-            if dict["ids"]:
-                ids = set()
-                for str_doc_id in dict["ids"].split(","):
-                    m = re.match("_idx_(\d+)", str_doc_id)
+            regex = r"(.*)\nIDX:(.*)"
+            match = re.search(regex, text)
+            if match:
+                ids: Set[int] = set()
+                for str_doc_id in match[2].split(","):
+                    m = re.match(r"(?:_idx_)?(\d+)", str_doc_id.strip())
                     if m:
-                        set.add(int(m[1]))
+                        ids.add(int(m[1]))
+
+                return References(response=match[1], documents=ids)
             else:
-                ids = []
-            return References(response=dict["response"], documents=ids)
+                raise ValueError(f"Could not parse output: {text}")
 
-
-    references_parser = _ReferencesParser(
-        regex=r"(.*)\nIDX:(.*)",
-        output_keys=["response", "ids"],
-        default_output_key="response",
-    )
+    references_parser = _ReferencesParser()
 else:
     references_parser = PydanticOutputParser(pydantic_object=References)

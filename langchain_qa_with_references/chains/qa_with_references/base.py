@@ -17,10 +17,12 @@ from langchain.chains.combine_documents.map_reduce import MapReduceDocumentsChai
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.chains.llm import LLMChain
 from langchain.docstore.document import Document
+
 # Impossible to import in experimental. bug in the CI
 from langchain.pydantic_v1 import Extra
+
 # from pydantic import Extra
-from langchain.schema import BaseOutputParser, BasePromptTemplate, OutputParserException
+from langchain.schema import BaseOutputParser, BasePromptTemplate
 
 from .loading import (
     load_qa_with_references_chain,
@@ -49,13 +51,13 @@ class BaseQAWithReferencesChain(Chain, ABC):
 
     @classmethod
     def from_llm(
-            cls,
-            llm: BaseLanguageModel,
-            document_prompt: BasePromptTemplate = EXAMPLE_PROMPT,
-            question_prompt: BasePromptTemplate = QUESTION_PROMPT,
-            combine_prompt: BasePromptTemplate = COMBINE_PROMPT,
-            **kwargs: Any,
-    ) -> 'BaseQAWithReferencesChain':
+        cls,
+        llm: BaseLanguageModel,
+        document_prompt: BasePromptTemplate = EXAMPLE_PROMPT,
+        question_prompt: BasePromptTemplate = QUESTION_PROMPT,
+        combine_prompt: BasePromptTemplate = COMBINE_PROMPT,
+        **kwargs: Any,
+    ) -> "BaseQAWithReferencesChain":
         """Construct the chain from an LLM."""
         llm_question_chain = LLMChain(llm=llm, prompt=question_prompt)
         llm_combine_chain = LLMChain(llm=llm, prompt=combine_prompt)
@@ -77,12 +79,12 @@ class BaseQAWithReferencesChain(Chain, ABC):
 
     @classmethod
     def from_chain_type(
-            cls,
-            llm: BaseLanguageModel,
-            chain_type: str = "stuff",
-            chain_type_kwargs: Optional[dict] = None,
-            **kwargs: Any,
-    ) -> 'BaseQAWithReferencesChain':
+        cls,
+        llm: BaseLanguageModel,
+        chain_type: str = "stuff",
+        chain_type_kwargs: Optional[dict] = None,
+        **kwargs: Any,
+    ) -> "BaseQAWithReferencesChain":
         """Load chain from chain type."""
         _chain_kwargs = chain_type_kwargs or {}
         combine_document_chain = load_qa_with_references_chain(
@@ -126,15 +128,15 @@ class BaseQAWithReferencesChain(Chain, ABC):
 
     @abstractmethod
     def _get_docs(
-            self,
-            inputs: Dict[str, Any],
-            *,
-            run_manager: CallbackManagerForChainRun,
+        self,
+        inputs: Dict[str, Any],
+        *,
+        run_manager: CallbackManagerForChainRun,
     ) -> List[Document]:
         """Get docs to run questioning over."""
 
     def _process_reference(
-            self, answers: Dict[str, Any], docs: List[Document], references: Any
+        self, answers: Dict[str, Any], docs: List[Document], references: Any
     ) -> Set[int]:
         # With the map_rerank mode, use extra parameter for map_rerank to identify
         # the corresponding document.
@@ -143,7 +145,7 @@ class BaseQAWithReferencesChain(Chain, ABC):
 
         ids = set()
         for str_doc_id in references.documents:
-            m = re.match("_idx_(\d+)", str_doc_id)
+            m = re.match(r"_idx_(\d+)", str_doc_id.strip())
             if m:
                 ids.add(int(m[1]))
             else:
@@ -151,10 +153,10 @@ class BaseQAWithReferencesChain(Chain, ABC):
         return ids
 
     def _process_results(
-            self,
-            answers: Dict[str, Any],
-            docs: List[Document],
-            run_manager: Optional[CallbackManagerForChainRun] = None,
+        self,
+        answers: Dict[str, Any],
+        docs: List[Document],
+        run_manager: Optional[CallbackManagerForChainRun] = None,
     ) -> Tuple[str, Set[int]]:
         idx = set()
         answer = answers[self.combine_documents_chain.output_key]
@@ -171,15 +173,12 @@ class BaseQAWithReferencesChain(Chain, ABC):
                     Any, self.combine_documents_chain
                 ).collapse_document_chain.llm_chain
             elif self.chain_type == "refine":
-                llm_chain = cast(
-                    Any, self.combine_documents_chain
-                ).refine_llm_chain
+                llm_chain = cast(Any, self.combine_documents_chain).refine_llm_chain
             else:
                 # Simple chain
-                llm_chain = cast(
-                    Any, self.combine_documents_chain
-                ).llm_chain
-        parser = parser or llm_chain.prompt.output_parser
+                llm_chain = cast(Any, self.combine_documents_chain).llm_chain
+        if llm_chain:
+            parser = llm_chain.prompt.output_parser
         assert parser
 
         references = parser.parse(answer)
@@ -200,21 +199,21 @@ class BaseQAWithReferencesChain(Chain, ABC):
 
     @abstractmethod
     async def _aget_docs(
-            self,
-            inputs: Dict[str, Any],
-            *,
-            run_manager: AsyncCallbackManagerForChainRun,
+        self,
+        inputs: Dict[str, Any],
+        *,
+        run_manager: AsyncCallbackManagerForChainRun,
     ) -> List[Document]:
         """Get docs to run questioning over."""
 
     def _call(
-            self,
-            inputs: Dict[str, Any],
-            run_manager: Optional[CallbackManagerForChainRun] = None,
+        self,
+        inputs: Dict[str, Any],
+        run_manager: Optional[CallbackManagerForChainRun] = None,
     ) -> Dict[str, Any]:
         _run_manager = run_manager or CallbackManagerForChainRun.get_noop_manager()
         accepts_run_manager = (
-                "run_manager" in inspect.signature(self._get_docs).parameters
+            "run_manager" in inspect.signature(self._get_docs).parameters
         )
         if accepts_run_manager:
             docs = self._get_docs(inputs, run_manager=_run_manager)
@@ -242,13 +241,13 @@ class BaseQAWithReferencesChain(Chain, ABC):
         }
 
     async def _acall(
-            self,
-            inputs: Dict[str, Any],
-            run_manager: Optional[AsyncCallbackManagerForChainRun] = None,
+        self,
+        inputs: Dict[str, Any],
+        run_manager: Optional[AsyncCallbackManagerForChainRun] = None,
     ) -> Dict[str, Any]:
         _run_manager = run_manager or AsyncCallbackManagerForChainRun.get_noop_manager()
         accepts_run_manager = (
-                "run_manager" in inspect.signature(self._aget_docs).parameters
+            "run_manager" in inspect.signature(self._aget_docs).parameters
         )
         if accepts_run_manager:
             docs = await self._aget_docs(inputs, run_manager=_run_manager)
@@ -296,19 +295,19 @@ class QAWithReferencesChain(BaseQAWithReferencesChain):
         return [self.input_docs_key, self.question_key]
 
     def _get_docs(
-            self,
-            inputs: Dict[str, Any],
-            *,
-            run_manager: CallbackManagerForChainRun,
+        self,
+        inputs: Dict[str, Any],
+        *,
+        run_manager: CallbackManagerForChainRun,
     ) -> List[Document]:
         """Get docs to run questioning over."""
         return inputs.pop(self.input_docs_key)
 
     async def _aget_docs(
-            self,
-            inputs: Dict[str, Any],
-            *,
-            run_manager: AsyncCallbackManagerForChainRun,
+        self,
+        inputs: Dict[str, Any],
+        *,
+        run_manager: AsyncCallbackManagerForChainRun,
     ) -> List[Document]:
         """Get docs to run questioning over."""
         return inputs.pop(self.input_docs_key)

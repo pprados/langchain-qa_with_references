@@ -6,7 +6,7 @@ from .references import references_parser, References
 
 _response_example_1 = References(
     response="This Agreement is governed by English law.",
-    documents=['_idx_0'],
+    documents=["_idx_0"],
 )
 
 # Sample with no result

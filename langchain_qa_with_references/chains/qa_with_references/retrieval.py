@@ -11,7 +11,6 @@ from langchain.docstore.document import Document
 
 # Impossible to import in experimental. bug in the CI ?
 from langchain.pydantic_v1 import Field
-
 from langchain.schema import BaseRetriever
 
 from .base import (

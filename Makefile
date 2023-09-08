@@ -126,7 +126,7 @@ else
 		; exit 1 )
 	rm -f dist/*.asc
 	echo "Enter Pypi password"
-	twine upload --sign \
+	twine upload  \
 		$(shell find dist -type f \( -name "*.whl" -or -name '*.gz' \) -and ! -iname "*dev*" )
 
 endif

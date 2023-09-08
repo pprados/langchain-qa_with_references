@@ -15,15 +15,15 @@ _response_example_1 = Verbatims(
     response="This Agreement is governed by English law.",
     documents=[
         VerbatimsFromDoc(
-            ids=['_idx_0'],
+            ids=["_idx_0"],
             verbatims=[
                 "This Agreement is governed by English law",
                 # "The english law is applicable for this agreement."
             ],
         ),
         VerbatimsFromDoc(
-            ids=['_idx_4'],
-            verbatims=["The english law is applicable for this agreement."]
+            ids=["_idx_4"],
+            verbatims=["The english law is applicable for this agreement."],
         ),
     ],
 )
@@ -31,24 +31,24 @@ _response_example_1 = Verbatims(
 _response_example_2 = Verbatims(response="", documents=[])
 
 _sample_1 = VerbatimsFromDoc(
-    ids=['_idx_0', '_idx_1'], verbatims=["This Agreement is governed by English law"]
+    ids=["_idx_0", "_idx_1"], verbatims=["This Agreement is governed by English law"]
 )
-_sample_2 = VerbatimsFromDoc(ids=['_idx_2'], verbatims=[])
-_sample_3 = VerbatimsFromDoc(ids=['_idx_3'], verbatims=[])
+_sample_2 = VerbatimsFromDoc(ids=["_idx_2"], verbatims=[])
+_sample_3 = VerbatimsFromDoc(ids=["_idx_3"], verbatims=[])
 _sample_4 = VerbatimsFromDoc(
-    ids=['_idx_4'], verbatims=["The english law is applicable for this agreement."]
+    ids=["_idx_4"], verbatims=["The english law is applicable for this agreement."]
 )
 
 _sample_5 = VerbatimsFromDoc(
-    ids=['_idx_0'],
+    ids=["_idx_0"],
     verbatims=[
         "Madam Speaker, Madam Vice President, our First Lady and Second "
         "Gentleman. Members of Congress and the Cabinet."
     ],
 )
-_sample_6 = VerbatimsFromDoc(ids=['_idx_1', '_idx_2'], verbatims=[])
-_sample_7 = VerbatimsFromDoc(ids=['_idx_3'], verbatims=[])
-_sample_8 = VerbatimsFromDoc(ids=['_idx_4'], verbatims=[])
+_sample_6 = VerbatimsFromDoc(ids=["_idx_1", "_idx_2"], verbatims=[])
+_sample_7 = VerbatimsFromDoc(ids=["_idx_3"], verbatims=[])
+_sample_8 = VerbatimsFromDoc(ids=["_idx_4"], verbatims=[])
 
 _question_prompt_template = """
 Use the following portion of a long document to see if any of the text is relevant to answer the question.

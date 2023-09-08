@@ -17,6 +17,7 @@ from langchain.chains.llm import LLMChain
 from langchain.docstore.document import Document
 from langchain.schema import BasePromptTemplate, OutputParserException
 
+from ..qa_with_references.base import BaseQAWithReferencesChain
 from .loading import (
     load_qa_with_references_chain,
 )
@@ -26,14 +27,13 @@ from .map_reduce_prompts import (
     QUESTION_PROMPT,
 )
 from .verbatims import Verbatims, verbatims_parser
-from ..qa_with_references.base import BaseQAWithReferencesChain
 
 logger = logging.getLogger(__name__)
 
 
 class BaseQAWithReferencesAndVerbatimsChain(BaseQAWithReferencesChain):
     def _process_reference(
-            self, answers: Dict[str, Any], docs: List[Document], references: Any
+        self, answers: Dict[str, Any], docs: List[Document], references: Any
     ) -> Set[int]:
         idx = set()
         try:
@@ -41,7 +41,8 @@ class BaseQAWithReferencesAndVerbatimsChain(BaseQAWithReferencesChain):
             # With the map_rerank mode, use extra parameter for map_rerank to identify
             # the corresponding document.
             if "_idx" in answers:
-                # Use extra parameter for map_rerank to identify the corresponding document.
+                # Use extra parameter for map_rerank to identify the corresponding
+                # document.
                 # Fix the ids of the selected document.
                 verbatims.documents[0].ids = [answers["_idx"]]
 
@@ -50,7 +51,7 @@ class BaseQAWithReferencesAndVerbatimsChain(BaseQAWithReferencesChain):
                 for str_doc_id in ref_doc.ids:
                     m = re.match("_idx_(\d+)", str_doc_id)
                     if not m:
-                        logger.debug(f"Detected invalide ids '{str_doc_id}'")
+                        logger.debug(f"Detected invalid ids '{str_doc_id}'")
                         continue
                     doc_id = int(m[1])
                     if 0 <= doc_id < len(docs):  # Guard
@@ -64,7 +65,9 @@ class BaseQAWithReferencesAndVerbatimsChain(BaseQAWithReferencesChain):
                                 docs[doc_id].metadata["verbatims"] = original_verbatim
                             elif "verbatims" not in docs[doc_id].metadata:
                                 logger.debug(
-                                    f"Verbatim not confirmed in original document\n{ref_doc.verbatims}")
+                                    f"Verbatim not confirmed in original document\n"
+                                    f"{ref_doc.verbatims}"
+                                )
                                 # docs[doc_id].metadata["verbatims"] =ref_doc.verbatims
             return idx
         except OutputParserException as e:
@@ -74,12 +77,12 @@ class BaseQAWithReferencesAndVerbatimsChain(BaseQAWithReferencesChain):
 
     @classmethod
     def from_llm(
-            cls,
-            llm: BaseLanguageModel,
-            document_prompt: BasePromptTemplate = EXAMPLE_PROMPT,
-            question_prompt: BasePromptTemplate = QUESTION_PROMPT,
-            combine_prompt: BasePromptTemplate = COMBINE_PROMPT,
-            **kwargs: Any,
+        cls,
+        llm: BaseLanguageModel,
+        document_prompt: BasePromptTemplate = EXAMPLE_PROMPT,
+        question_prompt: BasePromptTemplate = QUESTION_PROMPT,
+        combine_prompt: BasePromptTemplate = COMBINE_PROMPT,
+        **kwargs: Any,
     ) -> BaseQAWithReferencesChain:
         """Construct the chain from an LLM."""
         llm_question_chain = LLMChain(llm=llm, prompt=question_prompt)
@@ -102,11 +105,11 @@ class BaseQAWithReferencesAndVerbatimsChain(BaseQAWithReferencesChain):
 
     @classmethod
     def from_chain_type(
-            cls,
-            llm: BaseLanguageModel,
-            chain_type: str = "stuff",
-            chain_type_kwargs: Optional[dict] = None,
-            **kwargs: Any,
+        cls,
+        llm: BaseLanguageModel,
+        chain_type: str = "stuff",
+        chain_type_kwargs: Optional[dict] = None,
+        **kwargs: Any,
     ) -> BaseQAWithReferencesChain:
         """Load chain from chain type."""
         _chain_kwargs = chain_type_kwargs or {}
@@ -172,19 +175,19 @@ class QAWithReferencesAndVerbatimsChain(BaseQAWithReferencesAndVerbatimsChain):
         return [self.input_docs_key, self.question_key]
 
     def _get_docs(
-            self,
-            inputs: Dict[str, Any],
-            *,
-            run_manager: CallbackManagerForChainRun,
+        self,
+        inputs: Dict[str, Any],
+        *,
+        run_manager: CallbackManagerForChainRun,
     ) -> List[Document]:
         """Get docs to run questioning over."""
         return inputs.pop(self.input_docs_key)
 
     async def _aget_docs(
-            self,
-            inputs: Dict[str, Any],
-            *,
-            run_manager: AsyncCallbackManagerForChainRun,
+        self,
+        inputs: Dict[str, Any],
+        *,
+        run_manager: AsyncCallbackManagerForChainRun,
     ) -> List[Document]:
         """Get docs to run questioning over."""
         return inputs.pop(self.input_docs_key)

@@ -9,7 +9,7 @@ _response_example_1 = Verbatims(
     documents=[
         # Sample with multiple verbatims
         VerbatimsFromDoc(
-            ids=['_idx_0'],
+            ids=["_idx_0"],
             verbatims=[
                 "This Agreement is governed by English law",
                 "The english law is applicable for this agreement.",
@@ -17,8 +17,8 @@ _response_example_1 = Verbatims(
         ),
         # Sample with one verbatim
         VerbatimsFromDoc(
-            ids=['_idx_3'],
-            verbatims=["The english law is applicable for this agreement."]
+            ids=["_idx_3"],
+            verbatims=["The english law is applicable for this agreement."],
         ),
     ],
 )
