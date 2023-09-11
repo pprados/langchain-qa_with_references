@@ -144,4 +144,17 @@ sync:
 	cp ../langchain/libs/experimental/docs/qa_with_reference*.ipynb .
 	find . -type f \( -name '*.py' -or -name '*.ipynb' \) | xargs sed -i 's/langchain_experimental/langchain_qa_with_references/g'
 	find . -type f -name '*.ipynb' | xargs sed -i 's/langchain-experimental/langchain-qa_with_references/g'
-	find . -type f -name '*.ipynb' | xargs sed -i 's/\.\.\/\.\.\/\.\.\/docs/./g'
+
+reverse-sync:
+	( cd langchain_qa_with_references/chains/ ; \
+	 find . -type f -not -iname '__init__.py' -exec cp '{}' '../../../langchain/libs/experimental/langchain_experimental/chains/{}' ';' \
+	)
+
+	( cd tests/unit_tests/chains ; \
+	 find . -type f -not -iname '__init__.py' -exec cp '{}' '../../../../langchain/libs/experimental/tests/unit_tests/chains/{}' ';' \
+	)
+
+	cp *.ipynb ../langchain/libs/experimental/docs/qa_with_reference*.ipynb
+	find ../langchain/libs/experimental -type f \( -name '*.py' -or -name '*.ipynb' \) -exec  sed -i 's/langchain_qa_with_references/langchain_experimental/g' '{}' ';'
+	find ../langchain/libs/experimental/docs -type f -name '*.ipynb' -exec sed -i 's/langchain-qa_with_references\[openai\]/langchain-experimental/g' '{}' ';'
+	find ../langchain/libs/experimental/docs -type f -name '*.ipynb' -exec sed -i 's/langchain_qa_with_references/langchain_experimental/g' '{}' ';'

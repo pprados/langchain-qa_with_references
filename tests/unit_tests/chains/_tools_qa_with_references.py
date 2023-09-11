@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from langchain.callbacks import StdOutCallbackHandler
 from langchain.callbacks.base import Callbacks
 from langchain.document_loaders.base import BaseLoader
+from langchain.embeddings.base import Embeddings
 from langchain.indexes.vectorstore import VectorStoreIndexWrapper
 from langchain.llms.base import BaseLLM
 from langchain.schema import BaseRetriever, Document
@@ -184,7 +185,7 @@ def _test_index(
     text_splitter: TextSplitter = MarkdownTextSplitter(
         chunk_size=1500, chunk_overlap=100, length_function=len
     ),
-    embedding=None,
+    embedding: Optional[Embeddings] = None,
 ) -> VectorStoreIndexWrapper:
     from langchain.embeddings import HuggingFaceEmbeddings
 
