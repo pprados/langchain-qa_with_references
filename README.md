@@ -27,7 +27,7 @@ pip install langchain-qa_with_reference
 
 # Sample  notebook
 
-See [here](qa_with_reference.ipynb)
+See [here](qa_with_references.ipynb)
 
 # langchain Pull-request
 This is a temporary project while I wait for my langchain 
