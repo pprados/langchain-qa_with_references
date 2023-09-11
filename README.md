@@ -27,7 +27,7 @@ pip install langchain-qa_with_reference
 
 # Sample  notebook
 
-See [here](qa_with_references.ipynb)
+See [here]([https://github.com/pprados/langchain-qa_with_references/blob/master/qa_with_reference.ipynb](https://github.com/pprados/langchain-qa_with_references/blob/master/qa_with_reference_and_verbatim.ipynb)
 
 # langchain Pull-request
 This is a temporary project while I wait for my langchain 
