@@ -8,7 +8,7 @@ from langchain.document_loaders.base import BaseLoader
 from langchain.embeddings.base import Embeddings
 from langchain.indexes.vectorstore import VectorStoreIndexWrapper
 from langchain.llms.base import BaseLLM
-from langchain.schema import BaseRetriever, Document
+from langchain.schema import BaseRetriever
 from langchain.schema.language_model import BaseLanguageModel
 from langchain.text_splitter import MarkdownTextSplitter, TextSplitter
 
@@ -157,24 +157,25 @@ def _test_loader(type: str, llm: BaseLLM) -> BaseLoader:
         from langchain.document_loaders import DirectoryLoader, TextLoader
 
         return DirectoryLoader("../../docs/", glob="**/*.md", loader_cls=TextLoader)
-    elif type == "apify":
-        import os
-
-        from langchain.utilities import ApifyWrapper
-
-        if "APIFY_API_TOKEN" not in os.environ:
-            os.environ["APIFY_API_TOKEN"] = "Your Apify API token"
-
-        apify = ApifyWrapper()
-        return apify.call_actor(
-            actor_id="apify/website-content-crawler",
-            run_input={
-                "startUrls": [{"url": "https://python.langchain.com/en/latest/"}]
-            },
-            dataset_mapping_function=lambda item: Document(
-                page_content=item["text"] or "", metadata={"source": item["url"]}
-            ),
-        )
+    # elif type == "apify":
+    #     import os
+    #
+    #     from langchain.utilities import ApifyWrapper
+    #     from langchain.schema import Document
+    #
+    #     if "APIFY_API_TOKEN" not in os.environ:
+    #         os.environ["APIFY_API_TOKEN"] = "Your Apify API token"
+    #
+    #     apify = ApifyWrapper()
+    #     return apify.call_actor(
+    #         actor_id="apify/website-content-crawler",
+    #         run_input={
+    #             "startUrls": [{"url": "https://python.langchain.com/en/latest/"}]
+    #         },
+    #         dataset_mapping_function=lambda item: Document(
+    #             page_content=item["text"] or "", metadata={"source": item["url"]}
+    #         ),
+    #     )
     else:
         assert False
 

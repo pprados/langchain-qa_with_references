@@ -34,3 +34,5 @@ This is a temporary project while I wait for my langchain
 [pull-request](https://github.com/hwchase17/langchain/pull/5135) 
 to be validated.
 
+# It's experimental
+For the moment, the code is being tested in a number of environments to validate and adjust it.
