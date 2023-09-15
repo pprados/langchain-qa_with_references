@@ -46,13 +46,11 @@ If you don't know how to refine the original answer, does not modify the answer.
 
 Process step by step:
 - ignore prior knowledge
-- with the new context extract references of the new context ("IDX")
 - refine the original answer to better answer the question. ONLY if you do update it
-- append the new IDX from the existing answser IDX as well. 
-- create a final answer
+- append the new IDS from the existing answser IDS as well. 
 - produce the result
 
-ALWAYS return a "IDX" part in your answer. 
+ALWAYS return a "IDS" part in your answer. 
 If the context isn't useful, return the original answer.
 
 If you don't know the answer, just say that you don't know. Don't try to make up an answer.
@@ -71,6 +69,7 @@ REFINE_PROMPT = PromptTemplate(
 
 
 EXAMPLE_PROMPT = PromptTemplate(
-    template="ids: {_idx}\n" "Content: {page_content}\n",
+    template="Content: {page_content}\n"
+             "ids: {_idx}\n",
     input_variables=["page_content", "_idx"],
 )

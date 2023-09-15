@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any, Mapping, Optional, Protocol
 
 from langchain.base_language import BaseLanguageModel
+from langchain.chains import ReduceDocumentsChain
 from langchain.chains.combine_documents import map_reduce, map_rerank, refine, stuff
 from langchain.chains.combine_documents.base import BaseCombineDocumentsChain
 from langchain.chains.llm import LLMChain
@@ -56,12 +57,13 @@ def _load_map_reduce_chain(
     reduce_llm: Optional[BaseLanguageModel] = None,
     collapse_llm: Optional[BaseLanguageModel] = None,
     verbose: Optional[bool] = None,
+    token_max: int = 3000,
     **kwargs: Any,
 ) -> map_reduce.MapReduceDocumentsChain:
     map_chain = LLMChain(llm=llm, prompt=question_prompt, verbose=verbose)
     _reduce_llm = reduce_llm or llm
     reduce_chain = LLMChain(llm=_reduce_llm, prompt=combine_prompt, verbose=verbose)
-    combine_document_chain = stuff.StuffDocumentsChain(
+    combine_documents_chain = stuff.StuffDocumentsChain(
         llm_chain=reduce_chain,
         document_variable_name=combine_document_variable_name,
         document_prompt=document_prompt,
@@ -85,11 +87,16 @@ def _load_map_reduce_chain(
             document_variable_name=combine_document_variable_name,
             document_prompt=document_prompt,
         )
+    reduce_documents_chain = ReduceDocumentsChain(
+        combine_documents_chain=combine_documents_chain,
+        collapse_documents_chain=collapse_chain,
+        token_max=token_max,
+        verbose=verbose,
+    )
     return map_reduce.MapReduceDocumentsChain(
         llm_chain=map_chain,
-        combine_document_chain=combine_document_chain,
+        reduce_documents_chain=reduce_documents_chain,
         document_variable_name=map_reduce_document_variable_name,
-        collapse_document_chain=collapse_chain,
         verbose=verbose,
         return_intermediate_steps=True,
         **kwargs,

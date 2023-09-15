@@ -37,22 +37,22 @@ How to determine the score:
 - If you do not know the answer based on the context, that should be a score of 0
 - Don't be overconfident!
 
+The ids must be only in the form '_idx_<number>'.
+
 Process step by step:
-- extract the references ("IDX")
+- extract the references ("IDS")
 - extract all the verbatims from the texts only if they are relevant to answering the question, in a list of strings 
 - answers the question
 - calculates a score of how fully it answered the user's question
 - creates a final answer
 
-
-Here the format for the Helpful Answer.
 The ids must be only in the form '_idx_<number>'.
 {format_instructions}
 
 This should be in the following format:
 Question: [question here]
 Helpful Answer: [json answer here]
-Score: [score between 0 and 100]
+Score: [to the next line, score between 0 and 100]
 
 Example #1
 Context:
@@ -102,6 +102,6 @@ PROMPT = PromptTemplate(
 )
 
 EXAMPLE_PROMPT = PromptTemplate(
-    template="Content: {page_content}\n" "Idx: {_idx}",
+    template="Content: {page_content}\nIds: {_idx}",
     input_variables=["page_content", "_idx"],
 )

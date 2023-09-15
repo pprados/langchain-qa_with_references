@@ -50,11 +50,11 @@ Process step by step:
 - with the new context 
     - extract references of the new context ("IDX")
     - add all the exact verbatims from the texts of the new context, only if they are relevant to answering the question, in a list of strings 
-- refine the original answer to better answer the question. ONLY if you do update it.
-- append the new IDX and add verbatims of texts from the existing answser IDX as well. 
+- refine the original answer to better answer the question. ONLY if you do update it
+- append the new IDS and add verbatims of texts from the existing answser IDS as well. 
 - produce the result
 
-ALWAYS return a "IDX" part in your answer. 
+ALWAYS return a "IDS" part in your answer. 
 If the context isn't useful, return the original answer.
 
 If you don't know the answer, just say that you don't know. Don't try to make up an answer.

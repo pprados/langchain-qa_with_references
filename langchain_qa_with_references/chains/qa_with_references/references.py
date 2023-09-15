@@ -9,27 +9,32 @@ from langchain.pydantic_v1 import BaseModel
 
 # from pydantic import BaseModel
 from langchain.schema import BaseOutputParser
+from pydantic import Extra
 
 logger = logging.getLogger(__name__)
 
 # To optimize the consumption of tokens, it's better to use only 'text', without json.
 # Else the schema consume ~300 tokens and the response 20 tokens by step
-_OPTIMIZE = True
+_OPTIMIZE = False  # TOTRY Experimental
 
 
 class References(BaseModel):
     """
     Response and referenced documents.
     """
+    class Config:
+        """Configuration for this pydantic object."""
+
+        extra = Extra.forbid
 
     response: str
     """ The response """
-    documents: Set[str] = set()
+    documents_ids: Set[str] = set()
     """ The list of documents used to response """
 
     def __str__(self) -> str:
         if _OPTIMIZE:
-            return f'{self.response}\nIDX:{",".join(map(str, self.documents))}'
+            return f'{self.response}\nIDX:{",".join(map(str, self.documents_ids))}'
         else:
             return self.json()
 
@@ -55,11 +60,11 @@ if _OPTIMIZE:
             return (
                 "Your response should be in the form:\n"
                 "Answer:the response\n"
-                "IDX: a comma separated list of ids"
+                "IDX: a comma-separated list of document identifiers used in the response"
             )
 
         def parse(self, text: str) -> References:
-            regex = r"(.*)\nIDX:(.*)"
+            regex = r"(?:Answer:)?(.*)\nIDX:(.*)"
             match = re.search(regex, text)
             if match:
                 ids: Set[int] = set()
@@ -68,7 +73,7 @@ if _OPTIMIZE:
                     if m:
                         ids.add(int(m[1]))
 
-                return References(response=match[1], documents=ids)
+                return References(response=match[1].strip(), documents_ids=ids)
             else:
                 raise ValueError(f"Could not parse output: {text}")
 

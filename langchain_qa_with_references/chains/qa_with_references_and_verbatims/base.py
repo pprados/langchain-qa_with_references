@@ -6,6 +6,7 @@ import logging
 import re
 from typing import Any, Dict, List, Optional, Set, cast
 
+from langchain.chains import ReduceDocumentsChain
 from langchain.base_language import BaseLanguageModel
 from langchain.callbacks.manager import (
     AsyncCallbackManagerForChainRun,
@@ -15,6 +16,7 @@ from langchain.chains.combine_documents.map_reduce import MapReduceDocumentsChai
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.chains.llm import LLMChain
 from langchain.docstore.document import Document
+from langchain.retrievers.multi_query import LineListOutputParser
 from langchain.schema import BasePromptTemplate, OutputParserException
 
 from ..qa_with_references.base import BaseQAWithReferencesChain
@@ -26,7 +28,7 @@ from .map_reduce_prompts import (
     EXAMPLE_PROMPT,
     QUESTION_PROMPT,
 )
-from .verbatims import Verbatims, verbatims_parser
+from .verbatims import Verbatims, verbatims_parser, VerbatimsFromDoc
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +47,13 @@ class BaseQAWithReferencesAndVerbatimsChain(BaseQAWithReferencesChain):
                 # document.
                 # Fix the ids of the selected document.
                 verbatims.documents[0].ids = [answers["_idx"]]
+
+            # # ce n'est pas terrible en cas de récursivité
+            # if "intermediate_steps" in answers:
+            #     line_parser=LineListOutputParser()
+            #     for i,intermediate_result in enumerate(answers["intermediate_steps"]):
+            #         verbatims_for_doc=line_parser.parse(intermediate_result)
+            #         references.document[i]=VerbatimsFromDoc(ids=i,verbatims=verbatims_for_doc)
 
             # Inject verbatims and get idx
             for ref_doc in verbatims.documents:
@@ -92,9 +101,13 @@ class BaseQAWithReferencesAndVerbatimsChain(BaseQAWithReferencesChain):
             document_prompt=document_prompt,
             document_variable_name="summaries",
         )
+        reduce_documents_chain = ReduceDocumentsChain(
+            combine_documents_chain=combine_results_chain
+        )
+
         combine_document_chain = MapReduceDocumentsChain(
             llm_chain=llm_question_chain,
-            combine_document_chain=combine_results_chain,
+            reduce_documents_chain=reduce_documents_chain,
             document_variable_name="context",
             return_intermediate_steps=True,
         )

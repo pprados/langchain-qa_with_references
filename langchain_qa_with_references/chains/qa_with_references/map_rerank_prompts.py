@@ -43,15 +43,16 @@ How to determine the score:
 The ids must be only in the form '_idx_<number>'.
 
 Process step by step:
+- extract the references ("IDS")
 - answers the question
 - calculates a score of how fully it answered the user's question
 - creates a final answer
 
-
+The ids must be only in the form '_idx_<number>'.
 This should be in the following format:
 Question: [question here]
 Helpful Answer: [json answer here]
-Score: [score between 0 and 100]
+Score: [to the next line, score between 0 and 100]
 
 Example #1
 Context:
@@ -95,6 +96,6 @@ PROMPT = PromptTemplate(
 )
 
 EXAMPLE_PROMPT = PromptTemplate(
-    template="Content: {page_content}\nIdx: {_idx}\n",
+    template="Content: {page_content}\nIds: {_idx}\n",
     input_variables=["page_content", "_idx"],
 )

@@ -6,7 +6,7 @@ from langchain.schema import Document, OutputParserException
 
 from langchain_qa_with_references.chains import QAWithReferencesChain
 
-from ._tools_qa_with_references import CALLBACKS, init_llm, logger
+from ._tools_qa_with_references import CALLBACKS, init_llm, logger, organize_result
 
 
 @pytest.mark.parametrize(
@@ -85,6 +85,8 @@ from ._tools_qa_with_references import CALLBACKS, init_llm, logger
         ),
     ],
 )
+
+
 @pytest.mark.parametrize("chain_type", ["stuff", "map_reduce", "refine", "map_rerank"])
 def test_qa_with_reference_chain(
     question: str,
@@ -128,13 +130,14 @@ def test_qa_with_reference_chain(
         assert not "Impossible to receive a correct response"
 
 
-@pytest.mark.skip(reason="The test invokes OpenAI")
-@pytest.mark.parametrize("chain_type", ["stuff", "map_reduce", "refine", "map_rerank"])
+# @pytest.mark.skip(reason="The test invokes OpenAI")
+# @pytest.mark.parametrize("chain_type", ["stuff", "map_reduce", "refine", "map_rerank"])
+@pytest.mark.parametrize("chain_type", ["map_reduce", ])
 def test_qa_with_reference_chain_and_retriever(chain_type: str) -> None:
     from ._tools_qa_with_references import CALLBACKS, FAKE_LLM, init_llm, test_retriever
 
     assert not FAKE_LLM
-    type = "google"
+    type = "wikipedia"
 
     llm = init_llm({})
     retriever, question = test_retriever(type, llm)
@@ -154,8 +157,14 @@ def test_qa_with_reference_chain_and_retriever(chain_type: str) -> None:
         },
         callbacks=CALLBACKS,
     )
+    references = organize_result(answer)
+    # Print the result
     print(
-        f'For the question "{question}", to answer "{answer["answer"]}", the LLM use:'
+        f'Question "{question}"\n'
+        f'Answer:\n{answer["answer"]}\n\n'
+        f'The LLM use:'
     )
-    for doc in answer["source_documents"]:
-        print(f"Source {doc.metadata['source']}")
+    for source, verbatims in references.items():
+        print(f"Source {source}")
+        for verbatim in verbatims:
+            print(f'-  "{verbatim}"')

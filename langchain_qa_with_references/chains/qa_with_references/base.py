@@ -15,6 +15,7 @@ from langchain.chains.base import Chain
 from langchain.chains.combine_documents.base import BaseCombineDocumentsChain
 from langchain.chains.combine_documents.map_reduce import MapReduceDocumentsChain
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
+from langchain.chains.combine_documents.reduce import ReduceDocumentsChain
 from langchain.chains.llm import LLMChain
 from langchain.docstore.document import Document
 
@@ -66,9 +67,12 @@ class BaseQAWithReferencesChain(Chain, ABC):
             document_prompt=document_prompt,
             document_variable_name="summaries",
         )
+        reduce_documents_chain = ReduceDocumentsChain(
+            combine_documents_chain=combine_results_chain
+        )
         combine_document_chain = MapReduceDocumentsChain(
             llm_chain=llm_question_chain,
-            combine_document_chain=combine_results_chain,
+            reduce_documents_chain=reduce_documents_chain,
             document_variable_name="context",
             return_intermediate_steps=True,
         )
@@ -126,6 +130,17 @@ class BaseQAWithReferencesChain(Chain, ABC):
         _output_keys = [self.answer_key, self.source_documents_key]
         return _output_keys
 
+    def _split_sources(self, answer: str) -> Tuple[str, str]:
+        """Split sources from answer."""
+        if re.search(r"SOURCES?:", answer, re.IGNORECASE):
+            answer, sources = re.split(
+                r"SOURCES?:|QUESTION:\s", answer, flags=re.IGNORECASE
+            )[:2]
+            sources = re.split(r"\n", sources)[0].strip()
+        else:
+            sources = ""
+        return answer, sources
+
     @abstractmethod
     def _get_docs(
         self,
@@ -141,16 +156,16 @@ class BaseQAWithReferencesChain(Chain, ABC):
         # With the map_rerank mode, use extra parameter for map_rerank to identify
         # the corresponding document.
         if "_idx" in answers:
-            references.documents.add(answers["_idx"])
+            references.documents_ids.add(answers["_idx"])
 
-        ids = set()
-        for str_doc_id in references.documents:
+        documents_idx = set()
+        for str_doc_id in references.documents_ids:
             m = re.match(r"_idx_(\d+)", str_doc_id.strip())
             if m:
-                ids.add(int(m[1]))
+                documents_idx.add(int(m[1]))
             else:
                 pass
-        return ids
+        return documents_idx
 
     def _process_results(
         self,
@@ -229,9 +244,15 @@ class BaseQAWithReferencesChain(Chain, ABC):
             {
                 self.combine_documents_chain.input_key: docs,
                 self.question_key: inputs[self.question_key],
+                **inputs,
             },
             callbacks=_run_manager.get_child(),
         )
+        # answer = self.combine_documents_chain.run(
+        #     input_documents=docs,
+        #     callbacks=_run_manager.get_child(),
+        #     **inputs
+        # )
         answer, all_idx = self._process_results(answers, docs)
         selected_docs = [docs[idx] for idx in all_idx if idx < len(docs)]
 
@@ -240,6 +261,7 @@ class BaseQAWithReferencesChain(Chain, ABC):
             self.source_documents_key: selected_docs,
         }
 
+    # TODO: aligner le code
     async def _acall(
         self,
         inputs: Dict[str, Any],

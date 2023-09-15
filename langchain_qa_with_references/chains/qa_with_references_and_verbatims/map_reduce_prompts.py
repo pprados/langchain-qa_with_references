@@ -2,53 +2,13 @@
 
 from langchain.output_parsers import PydanticOutputParser
 from langchain.prompts import PromptTemplate
+from langchain.retrievers.multi_query import LineListOutputParser
 from langchain.schema import BaseOutputParser
 
 from .verbatims import VerbatimsFromDoc, verbatims_parser, Verbatims
+from ..qa_with_references.references import References
 
-_map_verbatim_parser: BaseOutputParser = PydanticOutputParser(
-    pydantic_object=VerbatimsFromDoc
-)
-
-# Use some object. It's easier to update the verbatims schema.
-_response_example_1 = Verbatims(
-    response="This Agreement is governed by English law.",
-    documents=[
-        VerbatimsFromDoc(
-            ids=["_idx_0"],
-            verbatims=[
-                "This Agreement is governed by English law",
-                # "The english law is applicable for this agreement."
-            ],
-        ),
-        VerbatimsFromDoc(
-            ids=["_idx_4"],
-            verbatims=["The english law is applicable for this agreement."],
-        ),
-    ],
-)
-
-_response_example_2 = Verbatims(response="", documents=[])
-
-_sample_1 = VerbatimsFromDoc(
-    ids=["_idx_0", "_idx_1"], verbatims=["This Agreement is governed by English law"]
-)
-_sample_2 = VerbatimsFromDoc(ids=["_idx_2"], verbatims=[])
-_sample_3 = VerbatimsFromDoc(ids=["_idx_3"], verbatims=[])
-_sample_4 = VerbatimsFromDoc(
-    ids=["_idx_4"], verbatims=["The english law is applicable for this agreement."]
-)
-
-_sample_5 = VerbatimsFromDoc(
-    ids=["_idx_0"],
-    verbatims=[
-        "Madam Speaker, Madam Vice President, our First Lady and Second "
-        "Gentleman. Members of Congress and the Cabinet."
-    ],
-)
-_sample_6 = VerbatimsFromDoc(ids=["_idx_1", "_idx_2"], verbatims=[])
-_sample_7 = VerbatimsFromDoc(ids=["_idx_3"], verbatims=[])
-_sample_8 = VerbatimsFromDoc(ids=["_idx_4"], verbatims=[])
+_map_verbatim_parser = LineListOutputParser()
 
 _question_prompt_template = """
 Use the following portion of a long document to see if any of the text is relevant to answer the question.
@@ -58,7 +18,7 @@ Use the following portion of a long document to see if any of the text is releva
 
 Question: {question}
 
-Extract all verbatims from texts relevant to answering the question in a list of strings else output an empty array.
+Extract all verbatims from texts relevant to answering the question in separate strings else output an empty array.
 {format_instructions}
 
 """
@@ -72,11 +32,100 @@ QUESTION_PROMPT = PromptTemplate(
     output_parser=_map_verbatim_parser,
 )
 
+# _map_verbatim_parser: BaseOutputParser = PydanticOutputParser(
+#     pydantic_object=VerbatimsFromDoc
+# )
+
+# Use some object. It's easier to update the verbatims schema.
+_response_example_1 = Verbatims(
+    response="This Agreement is governed by English law.",
+    documents=[
+        VerbatimsFromDoc(
+            # ids=["_idx_0"],
+            ids=[""],
+            verbatims=[
+                "This Agreement is governed by English law",
+                # "The english law is applicable for this agreement."
+            ],
+        ),
+        VerbatimsFromDoc(
+            # ids=["_idx_4"],
+            ids=[""],
+            verbatims=["The english law is applicable for this agreement."],
+        ),
+    ],
+)
+
+_response_example_2 = Verbatims(response="", documents=[])
+
+_sample_1 = VerbatimsFromDoc(
+    # ids=["_idx_0", "_idx_1"],
+    ids=[],
+    verbatims=["This Agreement is governed by English law"]
+)
+_sample_2 = VerbatimsFromDoc(
+    # ids=["_idx_2"],
+    ids=[],
+    verbatims=[])
+_sample_3 = VerbatimsFromDoc(
+    # ids=["_idx_3"],
+    ids=[],
+    verbatims=[])
+_sample_4 = VerbatimsFromDoc(
+    # ids=["_idx_4"],
+    ids=[],
+    verbatims=["The english law is applicable for this agreement."]
+)
+
+_sample_5 = VerbatimsFromDoc(
+    # ids=["_idx_0"],
+    ids=[],
+    verbatims=[
+        "Madam Speaker, Madam Vice President, our First Lady and Second "
+        "Gentleman. Members of Congress and the Cabinet."
+    ],
+)
+_sample_6 = VerbatimsFromDoc(
+    # ids=["_idx_1", "_idx_2"],
+    ids=[],
+    verbatims=[])
+_sample_7 = VerbatimsFromDoc(
+    # ids=["_idx_3"],
+    ids=[],
+    verbatims=[])
+_sample_8 = VerbatimsFromDoc(
+    # ids=["_idx_4"],
+    ids=[],
+    verbatims=[])
+
+# _question_prompt_template = """
+# Use the following portion of a long document to see if any of the text is relevant to answer the question.
+# ---
+# {context}
+# ---
+#
+# Question: {question}
+#
+# Extract all verbatims from texts relevant to answering the question in separate strings else output an empty array.
+# {format_instructions}
+#
+# """
+#
+# QUESTION_PROMPT = PromptTemplate(
+#     template=_question_prompt_template,
+#     input_variables=["context", "question"],
+#     partial_variables={
+#         "format_instructions": _map_verbatim_parser.get_format_instructions()
+#     },
+#     output_parser=_map_verbatim_parser,
+# )
+
 _combine_prompt_template = """Given the following extracts from several documents, 
 a question and not prior knowledge. 
 
 Process step by step:
 - extract all verbatims
+- extract all associated ids
 - create a final response with these verbatims
 - produces the json result
 
@@ -127,6 +176,7 @@ COMBINE_PROMPT = PromptTemplate(
 )
 
 EXAMPLE_PROMPT = PromptTemplate(
-    template="Content: {page_content}\n" "Idx: {_idx}",
+    template="Ids: {_idx}\n" 
+             "Content: {page_content}\n" ,
     input_variables=["page_content", "_idx"],
 )

@@ -6,20 +6,22 @@ from .references import references_parser, References
 
 _response_example_1 = References(
     response="This Agreement is governed by English law.",
-    documents=["_idx_0"],
+    documents_ids=["_idx_0"],
 )
 
 # Sample with no result
-_response_example_2 = References(response="I don't know.", documents=[])
+_response_example_2 = References(
+    response="I don't know.",
+    documents_ids=[])
 
 _template = """Given the following extracts from several documents, a question and not prior knowledge. 
 Process step by step:
-- for each documents extract the references ("IDX")
+- for each documents extract the references ("IDS")
 - creates a final answer
 - produces the json result
 
 If you don't know the answer, just say that you don't know. Don't try to make up an answer.
-ALWAYS return a "IDX" part in your answer in another line.
+ALWAYS return a "IDS" part in your answer in another line.
 
 QUESTION: Which state/country's law governs the interpretation of the contract?
 =========

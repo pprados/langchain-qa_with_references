@@ -1,5 +1,7 @@
 import logging
 import re
+import shutil
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from langchain.callbacks import StdOutCallbackHandler
@@ -16,9 +18,9 @@ from tests.unit_tests.fake_llm import FakeLLM
 
 logger = logging.getLogger(__name__)
 
-FAKE_LLM = True
-VERBOSE_PROMPT = False
-VERBOSE_RESULT = False
+FAKE_LLM = False
+VERBOSE_PROMPT = True
+VERBOSE_RESULT = True
 USE_CACHE = True
 CALLBACKS: Callbacks = []
 
@@ -26,11 +28,11 @@ if VERBOSE_PROMPT or VERBOSE_RESULT:
 
     class ExStdOutCallbackHandler(StdOutCallbackHandler):
         def on_text(
-            self,
-            text: str,
-            color: Optional[str] = None,
-            end: str = "",
-            **kwargs: Any,
+                self,
+                text: str,
+                color: Optional[str] = None,
+                end: str = "",
+                **kwargs: Any,
         ) -> None:
             if VERBOSE_PROMPT:
                 print("====")
@@ -63,6 +65,7 @@ if VERBOSE_PROMPT or VERBOSE_RESULT:
                     )
                 else:
                     pass
+
 
     CALLBACKS = [ExStdOutCallbackHandler()]
 
@@ -97,11 +100,11 @@ def init_llm(queries: Dict[int, str]) -> BaseLLM:
 # %% -----------
 # Simulate new methods for VectorStoreIndexWrapper
 def query_with_reference(
-    self: VectorStoreIndexWrapper,
-    question: str,
-    llm: Optional[BaseLanguageModel] = None,
-    retriever_kwargs: Optional[Dict[str, Any]] = None,
-    **kwargs: Any,
+        self: VectorStoreIndexWrapper,
+        question: str,
+        llm: Optional[BaseLanguageModel] = None,
+        retriever_kwargs: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
 ) -> dict:
     """Query the vectorstore and get back sources."""
     # from langchain_qa_with_references.chains import RetrievalQAWithReferencesChain
@@ -118,11 +121,11 @@ def query_with_reference(
 
 
 def query_with_reference_and_verbatims(
-    self: VectorStoreIndexWrapper,
-    question: str,
-    llm: Optional[BaseLanguageModel] = None,
-    retriever_kwargs: Optional[Dict[str, Any]] = None,
-    **kwargs: Any,
+        self: VectorStoreIndexWrapper,
+        question: str,
+        llm: Optional[BaseLanguageModel] = None,
+        retriever_kwargs: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
 ) -> dict:
     """Query the vectorstore and get back sources."""
     # from langchain_qa_with_references.chains import \
@@ -181,12 +184,12 @@ def _test_loader(type: str, llm: BaseLLM) -> BaseLoader:
 
 
 def _test_index(
-    type: str,
-    llm: BaseLLM,
-    text_splitter: TextSplitter = MarkdownTextSplitter(
-        chunk_size=1500, chunk_overlap=100, length_function=len
-    ),
-    embedding: Optional[Embeddings] = None,
+        type: str,
+        llm: BaseLLM,
+        text_splitter: TextSplitter = MarkdownTextSplitter(
+            chunk_size=1500, chunk_overlap=100, length_function=len
+        ),
+        embedding: Optional[Embeddings] = None,
 ) -> VectorStoreIndexWrapper:
     from langchain.embeddings import HuggingFaceEmbeddings
 
@@ -209,18 +212,31 @@ def _test_index(
         assert None
 
 
+def organize_result(answer:Dict[str,Any]) -> Dict[str,List[str]]:
+    references: Dict[str, List[str]] = {}
+    for doc in answer["source_documents"]:
+        source = doc.metadata.get('source', [])
+        verbatims_for_source: List[str] = doc.metadata.get(source, [])
+        verbatims_for_source.extend(doc.metadata.get("verbatims", []))
+        references[source] = verbatims_for_source
+    return references
+
 def test_retriever(type: str, llm: BaseLLM) -> Tuple[BaseRetriever, str]:
     retriever: BaseRetriever
     if type == "wikipedia":
-        question = "what can you say about ukraine?"
+        # question = "what is the Machine learning?"
+        # question = "what is say about Matrix multiplication ?"
+        question = "what is the most popular language among data scientists?"
         from langchain.embeddings import OpenAIEmbeddings
         from langchain.retrievers import WikipediaRetriever
         from langchain.vectorstores import Chroma
 
         wikipedia_retriever = WikipediaRetriever()
+        f = Path("/tmp/chroma_db_oai")
+        shutil.rmtree(f, ignore_errors=True)
         vectorstore = Chroma(
             embedding_function=OpenAIEmbeddings(),
-            persist_directory="/tmp/chroma_db_oai",
+            persist_directory=str(f),
         )
         docs = wikipedia_retriever.get_relevant_documents(question)
         from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -239,7 +255,7 @@ def test_retriever(type: str, llm: BaseLLM) -> Tuple[BaseRetriever, str]:
         from langchain.text_splitter import RecursiveCharacterTextSplitter
         from langchain.vectorstores import Chroma
 
-        question = "what's the news from ukraine?"
+        question = "How do I use OpenAI?"
 
         dotenv.load_dotenv(override=True)
         # Search
@@ -280,7 +296,7 @@ def compare_words_of_responses(response: str, assert_response: str) -> bool:
     """
     only_words = filter(len, re.split(r"[^\w]+", assert_response))
     regex_for_words_in_same_oder = (
-        r"(?i)\b" + r"\b[^\w]+".join(only_words) + r"\b" r"\s*[.!?:;]?"
+            r"(?i)\b" + r"\b[^\w]+".join(only_words) + r"\b" r"\s*[.!?:;]?"
     )
     match = re.search(regex_for_words_in_same_oder, response, re.IGNORECASE)
     if match:
