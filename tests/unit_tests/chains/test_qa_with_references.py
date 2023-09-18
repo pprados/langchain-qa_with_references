@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Dict, List, Set, Tuple, Optional, Any
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import pytest
 from langchain.callbacks import StdOutCallbackHandler
@@ -29,11 +29,11 @@ if VERBOSE_PROMPT or VERBOSE_RESULT:
 
     class ExStdOutCallbackHandler(StdOutCallbackHandler):
         def on_text(
-                self,
-                text: str,
-                color: Optional[str] = None,
-                end: str = "",
-                **kwargs: Any,
+            self,
+            text: str,
+            color: Optional[str] = None,
+            end: str = "",
+            **kwargs: Any,
         ) -> None:
             if VERBOSE_PROMPT:
                 print("====")
@@ -67,13 +67,12 @@ if VERBOSE_PROMPT or VERBOSE_RESULT:
                 else:
                     pass
 
-
     CALLBACKS = [ExStdOutCallbackHandler()]
 
 
 def init_llm(
-        queries: Dict[int, str],
-        max_token: int = MAX_TOKENS,
+    queries: Dict[int, str],
+    max_token: int = MAX_TOKENS,
 ) -> BaseLLM:
     if FAKE_LLM:
         return FakeLLM(
@@ -106,7 +105,7 @@ def compare_words_of_responses(response: str, assert_response: str) -> bool:
     """
     only_words = filter(len, re.split(r"[^\w]+", assert_response))
     regex_for_words_in_same_oder = (
-            r"(?i)\b" + r"\b[^\w]+".join(only_words) + r"\b" r"\s*[.!?:;]?"
+        r"(?i)\b" + r"\b[^\w]+".join(only_words) + r"\b" r"\s*[.!?:;]?"
     )
     match = re.search(regex_for_words_in_same_oder, response, re.IGNORECASE)
     if match:
@@ -125,84 +124,84 @@ def compare_responses(responses: List[str], assert_responses: List[str]) -> bool
     "question,docs,map_responses",
     [
         (
-                "what does he eat?",
-                [
-                    Document(
-                        page_content="The night is black.",
-                        metadata={},
-                    ),
-                    Document(
-                        page_content="He eats\napples and plays football. "
-                                     "My name is Philippe. He eats pears.",
-                        metadata={},
-                    ),
-                    Document(
-                        page_content="He eats carrots. I like football.",
-                        metadata={},
-                    ),
-                    Document(
-                        page_content="The Earth is round.",
-                        metadata={},
-                    ),
-                ],
-                {
-                    "stuff": (
-                            {
-                                0: "```\n"
-                                   "He eats apples, pears and carrots.\n"
-                                   "IDX: _idx_1, _idx_2\n"
-                                   "```\n",
-                            },
-                            r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
-                            {1, 2},
-                    ),
-                    "map_reduce": (
-                            {
-                                0: 'Output: {"lines": []}',
-                                1: 'Output: {"lines": ["_idx_1: He eats apples", '
-                                   '"_idx_3: He eats pears"]}',
-                                2: 'Output: {"lines": ["_idx_1: He eats carrots."]}',
-                                3: 'Output: {"lines": []}',
-                                4: " He eats apples, pears, and carrots.\n"
-                                   "IDX: _idx_1, _idx_3, _idx_2\n",
-                            },
-                            r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
-                            {1, 2},
-                    ),
-                    "refine": (
-                            {
-                                0: "Answer: I don't know.\nIDX: _idx_0\n",
-                                1: "Answer: He eats apples, pears "
-                                   "and plays football.\nIDX: _idx_0, _idx_1\n",
-                                2: "Answer: He eats apples, pears, carrots "
-                                   "and plays football.\nIDX: _idx_0, _idx_1, _idx_2\n",
-                                3: "Answer: He eats apples, pears, carrots "
-                                   "and plays football.\nIDX: _idx_0, _idx_1, _idx_2, _idx_3\n",
-                            },
-                            r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
-                            {1, 2},
-                    ),
-                    "map_rerank": (
-                            {
-                                0: "This document does not answer the question\n" "Score: 0\n",
-                                1: "apples and pears\nScore: 100\n",
-                                2: "carrots\nScore: 100\n",
-                                3: "This document does not answer the question.\n" "Score: 0\n",
-                                4: "apples and pears\n",
-                            },
-                            r"(?i).*\bapples\b.*\bpears",
-                            {1},
-                    ),
-                },
+            "what does he eat?",
+            [
+                Document(
+                    page_content="The night is black.",
+                    metadata={},
+                ),
+                Document(
+                    page_content="He eats\napples and plays football. "
+                    "My name is Philippe. He eats pears.",
+                    metadata={},
+                ),
+                Document(
+                    page_content="He eats carrots. I like football.",
+                    metadata={},
+                ),
+                Document(
+                    page_content="The Earth is round.",
+                    metadata={},
+                ),
+            ],
+            {
+                "stuff": (
+                    {
+                        0: "```\n"
+                        "He eats apples, pears and carrots.\n"
+                        "IDX: _idx_1, _idx_2\n"
+                        "```\n",
+                    },
+                    r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
+                    {1, 2},
+                ),
+                "map_reduce": (
+                    {
+                        0: 'Output: {"lines": []}',
+                        1: 'Output: {"lines": ["_idx_1: He eats apples", '
+                        '"_idx_3: He eats pears"]}',
+                        2: 'Output: {"lines": ["_idx_1: He eats carrots."]}',
+                        3: 'Output: {"lines": []}',
+                        4: " He eats apples, pears, and carrots.\n"
+                        "IDX: _idx_1, _idx_3, _idx_2\n",
+                    },
+                    r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
+                    {1, 2},
+                ),
+                "refine": (
+                    {
+                        0: "Answer: I don't know.\nIDX: _idx_0\n",
+                        1: "Answer: He eats apples, pears "
+                        "and plays football.\nIDX: _idx_0, _idx_1\n",
+                        2: "Answer: He eats apples, pears, carrots "
+                        "and plays football.\nIDX: _idx_0, _idx_1, _idx_2\n",
+                        3: "Answer: He eats apples, pears, carrots "
+                        "and plays football.\nIDX: _idx_0, _idx_1, _idx_2, _idx_3\n",
+                    },
+                    r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
+                    {1, 2},
+                ),
+                "map_rerank": (
+                    {
+                        0: "This document does not answer the question\n" "Score: 0\n",
+                        1: "apples and pears\nScore: 100\n",
+                        2: "carrots\nScore: 100\n",
+                        3: "This document does not answer the question.\n" "Score: 0\n",
+                        4: "apples and pears\n",
+                    },
+                    r"(?i).*\bapples\b.*\bpears",
+                    {1},
+                ),
+            },
         ),
     ],
 )
 @pytest.mark.parametrize("chain_type", ALL_CHAIN_TYPE)
 def test_qa_with_reference_chain(
-        question: str,
-        docs: List[Document],
-        map_responses: Dict[str, Tuple[Dict[int, str], str, Set[int]]],
-        chain_type: str,
+    question: str,
+    docs: List[Document],
+    map_responses: Dict[str, Tuple[Dict[int, str], str, Set[int]]],
+    chain_type: str,
 ) -> None:
     queries, expected_answer, references = map_responses[chain_type]
     llm = init_llm(queries)

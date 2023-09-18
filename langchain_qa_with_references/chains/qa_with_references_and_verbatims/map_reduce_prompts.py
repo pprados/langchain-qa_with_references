@@ -61,20 +61,22 @@ _response_example_2 = Verbatims(response="", documents=[])
 _sample_1 = VerbatimsFromDoc(
     # ids=["_idx_0", "_idx_1"],
     ids=[],
-    verbatims=["This Agreement is governed by English law"]
+    verbatims=["This Agreement is governed by English law"],
 )
 _sample_2 = VerbatimsFromDoc(
     # ids=["_idx_2"],
     ids=[],
-    verbatims=[])
+    verbatims=[],
+)
 _sample_3 = VerbatimsFromDoc(
     # ids=["_idx_3"],
     ids=[],
-    verbatims=[])
+    verbatims=[],
+)
 _sample_4 = VerbatimsFromDoc(
     # ids=["_idx_4"],
     ids=[],
-    verbatims=["The english law is applicable for this agreement."]
+    verbatims=["The english law is applicable for this agreement."],
 )
 
 _sample_5 = VerbatimsFromDoc(
@@ -88,15 +90,18 @@ _sample_5 = VerbatimsFromDoc(
 _sample_6 = VerbatimsFromDoc(
     # ids=["_idx_1", "_idx_2"],
     ids=[],
-    verbatims=[])
+    verbatims=[],
+)
 _sample_7 = VerbatimsFromDoc(
     # ids=["_idx_3"],
     ids=[],
-    verbatims=[])
+    verbatims=[],
+)
 _sample_8 = VerbatimsFromDoc(
     # ids=["_idx_4"],
     ids=[],
-    verbatims=[])
+    verbatims=[],
+)
 
 # _question_prompt_template = """
 # Use the following portion of a long document to see if any of the text is relevant to answer the question.
@@ -176,7 +181,6 @@ COMBINE_PROMPT = PromptTemplate(
 )
 
 EXAMPLE_PROMPT = PromptTemplate(
-    template="Ids: {_idx}\n" 
-             "Content: {page_content}\n" ,
+    template="Ids: {_idx}\n" "Content: {page_content}\n",
     input_variables=["page_content", "_idx"],
 )

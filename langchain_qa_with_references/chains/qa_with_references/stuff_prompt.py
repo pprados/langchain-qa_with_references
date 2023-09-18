@@ -10,9 +10,7 @@ _response_example_1 = References(
 )
 
 # Sample with no result
-_response_example_2 = References(
-    response="I don't know.",
-    documents_ids=[])
+_response_example_2 = References(response="I don't know.", documents_ids=[])
 
 _template = """Given the following extracts from several documents, a question and not prior knowledge. 
 Process step by step:

@@ -6,17 +6,16 @@ import logging
 import re
 from typing import Any, Dict, List, Optional, Set, cast
 
-from langchain.chains import ReduceDocumentsChain
 from langchain.base_language import BaseLanguageModel
 from langchain.callbacks.manager import (
     AsyncCallbackManagerForChainRun,
     CallbackManagerForChainRun,
 )
+from langchain.chains import ReduceDocumentsChain
 from langchain.chains.combine_documents.map_reduce import MapReduceDocumentsChain
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.chains.llm import LLMChain
 from langchain.docstore.document import Document
-from langchain.retrievers.multi_query import LineListOutputParser
 from langchain.schema import BasePromptTemplate, OutputParserException
 
 from ..qa_with_references.base import BaseQAWithReferencesChain
@@ -28,7 +27,7 @@ from .map_reduce_prompts import (
     EXAMPLE_PROMPT,
     QUESTION_PROMPT,
 )
-from .verbatims import Verbatims, verbatims_parser, VerbatimsFromDoc
+from .verbatims import Verbatims, verbatims_parser
 
 logger = logging.getLogger(__name__)
 

@@ -22,6 +22,7 @@ class References(BaseModel):
     """
     Response and referenced documents.
     """
+
     class Config:
         """Configuration for this pydantic object."""
 
@@ -60,7 +61,8 @@ if _OPTIMIZE:
             return (
                 "Your response should be in the form:\n"
                 "Answer:the response\n"
-                "IDX: a comma-separated list of document identifiers used in the response"
+                "IDX: a comma-separated list of document identifiers used "
+                "in the response"
             )
 
         def parse(self, text: str) -> References:

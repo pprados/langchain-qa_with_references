@@ -6,9 +6,9 @@ from typing import Any, Mapping, Optional, Protocol
 from langchain.base_language import BaseLanguageModel
 from langchain.chains.combine_documents import map_reduce, map_rerank, refine, stuff
 from langchain.chains.combine_documents.base import BaseCombineDocumentsChain
+from langchain.chains.combine_documents.reduce import ReduceDocumentsChain
 from langchain.chains.llm import LLMChain
 from langchain.schema.prompt_template import BasePromptTemplate
-from langchain.chains.combine_documents.reduce import ReduceDocumentsChain
 
 from . import (
     map_reduce_prompts,

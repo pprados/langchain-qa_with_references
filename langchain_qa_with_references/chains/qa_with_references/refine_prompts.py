@@ -69,7 +69,6 @@ REFINE_PROMPT = PromptTemplate(
 
 
 EXAMPLE_PROMPT = PromptTemplate(
-    template="Content: {page_content}\n"
-             "ids: {_idx}\n",
+    template="Content: {page_content}\n" "ids: {_idx}\n",
     input_variables=["page_content", "_idx"],
 )

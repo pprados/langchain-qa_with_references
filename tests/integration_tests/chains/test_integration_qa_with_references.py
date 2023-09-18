@@ -2,25 +2,24 @@ import logging
 import os
 import shutil
 import tempfile
-from functools import cache
 from pathlib import Path
-from typing import List, Type, Dict, Any, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Type, cast
 
 import pytest
 from langchain.callbacks import StdOutCallbackHandler
 from langchain.callbacks.base import Callbacks
 from langchain.document_loaders import DirectoryLoader, TextLoader
+from langchain.document_loaders.base import BaseLoader
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.embeddings.base import Embeddings
 from langchain.indexes import VectorstoreIndexCreator
 from langchain.llms import BaseLLM
 from langchain.retrievers import WebResearchRetriever
-from langchain.schema import Document, BaseRetriever
+from langchain.schema import BaseRetriever, Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter, TextSplitter
 from langchain.vectorstores import Chroma
 
 from langchain_qa_with_references.chains import RetrievalQAWithReferencesChain
-from tests.unit_tests.fake_llm import FakeLLM
 
 logger = logging.getLogger(__name__)
 
@@ -53,13 +52,15 @@ CHUNK_SIZE = 500
 CHUNK_OVERLAP = 5
 TEMPERATURE = 0.0
 MAX_TOKENS = 1000
-REDUCE_K_BELOW_MAX_TOKENS= False
-ALL_CHAIN_TYPE=["stuff", "map_reduce", "refine", "map_rerank"]
-ALL_SAMPLES=sorted({(k, l) for k, ls in samples.items() for l in ls})
+REDUCE_K_BELOW_MAX_TOKENS = False
+ALL_CHAIN_TYPE = ["stuff", "map_reduce", "refine", "map_rerank"]
+ALL_SAMPLES = sorted({(k, v) for k, ls in samples.items() for v in ls})
 
 # To test a selected combinaison, activate these values
-ALL_CHAIN_TYPE=["stuff", ]
-ALL_SAMPLES=[("google", "how can i be better at football?")]
+ALL_CHAIN_TYPE = [
+    "stuff",
+]
+ALL_SAMPLES = [("google", "how can i be better at football?")]
 
 CALLBACKS: Callbacks = []
 
@@ -67,11 +68,11 @@ if VERBOSE_PROMPT or VERBOSE_RESULT:
 
     class ExStdOutCallbackHandler(StdOutCallbackHandler):
         def on_text(
-                self,
-                text: str,
-                color: Optional[str] = None,
-                end: str = "",
-                **kwargs: Any,
+            self,
+            text: str,
+            color: Optional[str] = None,
+            end: str = "",
+            **kwargs: Any,
         ) -> None:
             if VERBOSE_PROMPT:
                 print("====")
@@ -105,15 +106,14 @@ if VERBOSE_PROMPT or VERBOSE_RESULT:
                 else:
                     pass
 
-
     CALLBACKS = [ExStdOutCallbackHandler()]
 
 
-def _init_llm(temperature: float = TEMPERATURE,
-              max_token: int = MAX_TOKENS) -> BaseLLM:
+def _init_llm(temperature: float = TEMPERATURE, max_token: int = MAX_TOKENS) -> BaseLLM:
     import langchain
     from dotenv import load_dotenv
     from langchain.cache import SQLiteCache
+
     load_dotenv()
 
     if USE_CACHE:
@@ -128,22 +128,23 @@ def _init_llm(temperature: float = TEMPERATURE,
     return llm
 
 
-_cache_retriever:Dict[Tuple[str,str],BaseRetriever]={}
+_cache_retriever: Dict[Tuple[str, str], BaseRetriever] = {}
+
 
 def _get_retriever(
-        provider: str,
-        question: str,
-        splitter: TextSplitter,
-        llm: BaseLLM) -> BaseRetriever:
-    cache_retriever=_cache_retriever.get((provider,question))
+    provider: str, question: str, splitter: TextSplitter, llm: BaseLLM
+) -> BaseRetriever:
+    cache_retriever = _cache_retriever.get((provider, question))
     if cache_retriever:
         return cache_retriever
     import dotenv
+
     dotenv.load_dotenv(override=True)
     retriever: BaseRetriever
     import langchain
 
-    embeding_function: Embeddings=OpenAIEmbeddings()
+    loader: BaseLoader
+    embeding_function: Embeddings = OpenAIEmbeddings()
     f = Path(tempfile.gettempdir(), "test_chroma.db")
     shutil.rmtree(f, ignore_errors=True)
 
@@ -156,14 +157,14 @@ def _get_retriever(
             persist_directory=str(f.name),
         )
         vectorstore.add_documents(split_docs)
-        retriever=vectorstore.as_retriever()
+        retriever = vectorstore.as_retriever()
 
     elif provider == "google":
         if "GOOGLE_API_KEY" not in os.environ or "GOOGLE_CSE_ID" not in os.environ:
             pytest.skip("GOOGLE_API_KEY and GOOGLE_CSE_ID must be set")
         try:
-            import googleapiclient
-            import html2text
+            import googleapiclient  # noqa: F401
+            import html2text  # noqa: F401
 
             # Search
             from langchain import GoogleSearchAPIWrapper
@@ -177,7 +178,7 @@ def _get_retriever(
                 vectorstore=vectorstore,
                 llm=llm,
                 search=GoogleSearchAPIWrapper(),
-                text_splitter=splitter,
+                text_splitter=cast(RecursiveCharacterTextSplitter, splitter),
             )
         except ImportError:
             pytest.skip("Use pip install google-api-python-client html2text")
@@ -201,9 +202,7 @@ def _get_retriever(
             apify = ApifyWrapper()
             loader = apify.call_actor(
                 actor_id="apify/website-content-crawler",
-                run_input={
-                    "startUrls": [{"url": "https://en.wikipedia.org/"}]
-                },
+                run_input={"startUrls": [{"url": "https://en.wikipedia.org/"}]},
                 dataset_mapping_function=lambda item: Document(
                     page_content=item["text"] or "", metadata={"source": item["url"]}
                 ),
@@ -219,27 +218,30 @@ def _get_retriever(
             pytest.skip("Use pip install apify-client")
     else:
         raise ValueError()
-    _cache_retriever[(provider, question)]=retriever
+    _cache_retriever[(provider, question)] = retriever
     return retriever
+
 
 def _merge_result_by_urls(answer: Dict[str, Any]) -> Dict[str, List[str]]:
     references: Dict[str, List[str]] = {}
     for doc in answer["source_documents"]:
-        source = doc.metadata.get('source', [])
+        source = doc.metadata.get("source", [])
         verbatims_for_source: List[str] = doc.metadata.get(source, [])
         verbatims_for_source.extend(doc.metadata.get("verbatims", []))
         references[source] = verbatims_for_source
     return references
 
 
-def _test_qa_with_reference_chain(cls: Type,
-                                  provider: str,
-                                  chain_type: str,
-                                  question: str,
-                                  max_token: int,
-                                  chunk_size:int,
-                                  chunk_overlap:int,
-                                  kwargs:Dict[str,Any]={}) -> None:
+def _test_qa_with_reference_chain(
+    cls: Type,
+    provider: str,
+    chain_type: str,
+    question: str,
+    max_token: int,
+    chunk_size: int,
+    chunk_overlap: int,
+    kwargs: Dict[str, Any] = {},
+) -> None:
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size, chunk_overlap=chunk_overlap
     )
@@ -264,14 +266,11 @@ def _test_qa_with_reference_chain(cls: Type,
         },
         callbacks=CALLBACKS,
     )
-    print(
-        f'Question "{question}"\n'
-        f'{answer["answer"]}\n\n'
-    )
-    if 'sources' in answer:
+    print(f'Question "{question}"\n' f'{answer["answer"]}\n\n')
+    if "sources" in answer:
         # Old QA with sources
         print(f'Source "{answer["sources"]}"')
-        for doc in answer.get('source_documents', []):
+        for doc in answer.get("source_documents", []):
             print(f'- Doc {doc.metadata["source"]}')
     else:
         references = _merge_result_by_urls(answer)
@@ -286,8 +285,9 @@ def _test_qa_with_reference_chain(cls: Type,
 # @pytest.mark.parametrize("provider,question",
 #                          sorted({(k, l) for k, ls in samples.items() for l in ls}))
 @pytest.mark.parametrize("provider,question", ALL_SAMPLES)
-def test_qa_with_references_chain(provider: str, chain_type: str,
-                                  question: str) -> None:
+def test_qa_with_references_chain(
+    provider: str, chain_type: str, question: str
+) -> None:
     _test_qa_with_reference_chain(
         cls=RetrievalQAWithReferencesChain,
         provider=provider,
@@ -298,5 +298,5 @@ def test_qa_with_references_chain(provider: str, chain_type: str,
         chunk_overlap=CHUNK_OVERLAP,
         kwargs={
             "reduce_k_below_max_tokens": REDUCE_K_BELOW_MAX_TOKENS,
-        }
+        },
     )
