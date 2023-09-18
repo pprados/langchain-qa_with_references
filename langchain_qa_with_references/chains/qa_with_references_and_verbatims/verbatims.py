@@ -3,11 +3,7 @@ import re
 from typing import List, Optional
 
 from langchain.output_parsers import PydanticOutputParser
-
-# Impossible to import in experimental. bug in the CI
 from langchain.pydantic_v1 import BaseModel
-
-# from pydantic import BaseModel
 from langchain.schema import BaseOutputParser
 
 logger = logging.getLogger(__name__)

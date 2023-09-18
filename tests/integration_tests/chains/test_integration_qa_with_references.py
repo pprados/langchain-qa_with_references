@@ -11,11 +11,11 @@ from langchain.callbacks.base import Callbacks
 from langchain.document_loaders import DirectoryLoader, TextLoader
 from langchain.document_loaders.base import BaseLoader
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.embeddings.base import Embeddings
 from langchain.indexes import VectorstoreIndexCreator
 from langchain.llms import BaseLLM
 from langchain.retrievers import WebResearchRetriever
 from langchain.schema import BaseRetriever, Document
+from langchain.schema.embeddings import Embeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter, TextSplitter
 from langchain.vectorstores import Chroma
 
@@ -57,10 +57,8 @@ ALL_CHAIN_TYPE = ["stuff", "map_reduce", "refine", "map_rerank"]
 ALL_SAMPLES = sorted({(k, v) for k, ls in samples.items() for v in ls})
 
 # To test a selected combinaison, activate these values
-ALL_CHAIN_TYPE = [
-    "stuff",
-]
-ALL_SAMPLES = [("google", "how can i be better at football?")]
+# ALL_CHAIN_TYPE = [ "stuff",]
+# ALL_SAMPLES = [("google", "how can i be better at football?")]
 
 CALLBACKS: Callbacks = []
 
@@ -163,8 +161,8 @@ def _get_retriever(
         if "GOOGLE_API_KEY" not in os.environ or "GOOGLE_CSE_ID" not in os.environ:
             pytest.skip("GOOGLE_API_KEY and GOOGLE_CSE_ID must be set")
         try:
-            import googleapiclient  # noqa: F401
-            import html2text  # noqa: F401
+            import googleapiclient  # type: ignore # noqa: F401
+            import html2text  # type: ignore # noqa: F401
 
             # Search
             from langchain import GoogleSearchAPIWrapper
@@ -242,43 +240,46 @@ def _test_qa_with_reference_chain(
     chunk_overlap: int,
     kwargs: Dict[str, Any] = {},
 ) -> None:
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size, chunk_overlap=chunk_overlap
-    )
+    try:
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=chunk_size, chunk_overlap=chunk_overlap
+        )
 
-    llm = _init_llm(max_token=max_token)
-    retriever = _get_retriever(
-        provider=provider,
-        question=question,
-        splitter=splitter,
-        llm=llm,
-    )
+        llm = _init_llm(max_token=max_token)
+        retriever = _get_retriever(
+            provider=provider,
+            question=question,
+            splitter=splitter,
+            llm=llm,
+        )
 
-    qa_chain = cls.from_chain_type(
-        llm=llm,
-        chain_type=chain_type,
-        retriever=retriever,
-        **kwargs,
-    )
-    answer = qa_chain(
-        inputs={
-            "question": question,
-        },
-        callbacks=CALLBACKS,
-    )
-    print(f'Question "{question}"\n' f'{answer["answer"]}\n\n')
-    if "sources" in answer:
-        # Old QA with sources
-        print(f'Source "{answer["sources"]}"')
-        for doc in answer.get("source_documents", []):
-            print(f'- Doc {doc.metadata["source"]}')
-    else:
-        references = _merge_result_by_urls(answer)
-        # Print the result
-        for source, verbatims in references.items():
-            print(f"Source {source}")
-            for verbatim in verbatims:
-                print(f'-  "{verbatim}"')
+        qa_chain = cls.from_chain_type(
+            llm=llm,
+            chain_type=chain_type,
+            retriever=retriever,
+            **kwargs,
+        )
+        answer = qa_chain(
+            inputs={
+                "question": question,
+            },
+            callbacks=CALLBACKS,
+        )
+        print(f'Question "{question}"\n' f'{answer["answer"]}\n\n')
+        if "sources" in answer:
+            # Old QA with sources
+            print(f'Source "{answer["sources"]}"')
+            for doc in answer.get("source_documents", []):
+                print(f'- Doc {doc.metadata["source"]}')
+        else:
+            references = _merge_result_by_urls(answer)
+            # Print the result
+            for source, verbatims in references.items():
+                print(f"Source {source}")
+                for verbatim in verbatims:
+                    print(f'-  "{verbatim}"')
+    except ImportError as e:
+        pytest.skip(f"Import error {e}")
 
 
 @pytest.mark.parametrize("chain_type", ALL_CHAIN_TYPE)

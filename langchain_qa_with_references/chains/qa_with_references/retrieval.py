@@ -8,8 +8,6 @@ from langchain.callbacks.manager import (
 )
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.docstore.document import Document
-
-# Impossible to import in experimental. bug in the CI ?
 from langchain.pydantic_v1 import Field
 from langchain.schema import BaseRetriever
 

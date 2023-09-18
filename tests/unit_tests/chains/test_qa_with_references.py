@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 import pytest
 from langchain.callbacks import StdOutCallbackHandler
-from langchain.callbacks.base import Callbacks
+from langchain.callbacks.manager import Callbacks
 from langchain.llms import BaseLLM
 from langchain.schema import Document, OutputParserException
 

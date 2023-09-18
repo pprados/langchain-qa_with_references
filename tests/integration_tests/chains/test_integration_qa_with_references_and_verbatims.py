@@ -15,8 +15,6 @@ from .test_integration_qa_with_references import (
 
 
 @pytest.mark.parametrize("chain_type", ALL_CHAIN_TYPE)
-# @pytest.mark.parametrize("provider,question",
-#                          sorted({(k, l) for k, ls in samples.items() for l in ls}))
 @pytest.mark.parametrize("provider,question", ALL_SAMPLES)
 def test_qa_with_reference_chain(provider: str, question: str, chain_type: str) -> None:
     _test_qa_with_reference_chain(

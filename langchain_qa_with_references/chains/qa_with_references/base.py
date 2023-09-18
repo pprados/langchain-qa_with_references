@@ -18,11 +18,7 @@ from langchain.chains.combine_documents.reduce import ReduceDocumentsChain
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.chains.llm import LLMChain
 from langchain.docstore.document import Document
-
-# Impossible to import in experimental. bug in the CI
 from langchain.pydantic_v1 import Extra
-
-# from pydantic import Extra
 from langchain.schema import BaseOutputParser, BasePromptTemplate
 
 from .loading import (
@@ -248,11 +244,6 @@ class BaseQAWithReferencesChain(Chain, ABC):
             },
             callbacks=_run_manager.get_child(),
         )
-        # answer = self.combine_documents_chain.run(
-        #     input_documents=docs,
-        #     callbacks=_run_manager.get_child(),
-        #     **inputs
-        # )
         answer, all_idx = self._process_results(answers, docs)
         selected_docs = [docs[idx] for idx in all_idx if idx < len(docs)]
 
@@ -280,10 +271,14 @@ class BaseQAWithReferencesChain(Chain, ABC):
         for idx, doc in enumerate(docs):
             doc.metadata["_idx"] = idx
 
+        await self.combine_documents_chain.arun(
+            input_documents=docs, callbacks=_run_manager.get_child(), **inputs
+        )
         answers = await self.combine_documents_chain.acall(
             {
                 self.combine_documents_chain.input_key: docs,
-                self.input_keys[0]: inputs[self.input_keys[0]],
+                self.question_key: inputs[self.question_key],
+                **inputs,
             },
             callbacks=_run_manager.get_child(),
         )

@@ -1,12 +1,9 @@
 # flake8: noqa
 
-from langchain.output_parsers import PydanticOutputParser
 from langchain.prompts import PromptTemplate
 from langchain.retrievers.multi_query import LineListOutputParser
-from langchain.schema import BaseOutputParser
 
 from .verbatims import VerbatimsFromDoc, verbatims_parser, Verbatims
-from ..qa_with_references.references import References
 
 _map_verbatim_parser = LineListOutputParser()
 

@@ -47,13 +47,6 @@ class BaseQAWithReferencesAndVerbatimsChain(BaseQAWithReferencesChain):
                 # Fix the ids of the selected document.
                 verbatims.documents[0].ids = [answers["_idx"]]
 
-            # # ce n'est pas terrible en cas de récursivité
-            # if "intermediate_steps" in answers:
-            #     line_parser=LineListOutputParser()
-            #     for i,intermediate_result in enumerate(answers["intermediate_steps"]):
-            #         verbatims_for_doc=line_parser.parse(intermediate_result)
-            #         references.document[i]=VerbatimsFromDoc(ids=i,verbatims=verbatims_for_doc)
-
             # Inject verbatims and get idx
             for ref_doc in verbatims.documents:
                 for str_doc_id in ref_doc.ids:
@@ -82,6 +75,10 @@ class BaseQAWithReferencesAndVerbatimsChain(BaseQAWithReferencesChain):
             logger.debug(f"Exception during parsing: {e}")
             # return idx
             raise
+
+    @property
+    def _chain_type(self) -> str:
+        return "qa_with_references_and_verbatims_chain"
 
     @classmethod
     def from_llm(
