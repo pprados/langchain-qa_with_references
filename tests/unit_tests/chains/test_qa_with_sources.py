@@ -2,6 +2,7 @@ import re
 from typing import Dict, List, Set, Tuple
 
 import pytest
+from langchain import QAWithSourcesChain
 from langchain.schema import Document, OutputParserException
 
 from langchain_qa_with_references.chains import (
@@ -19,34 +20,28 @@ from .test_qa_with_references import ALL_CHAIN_TYPE, init_llm, CALLBACKS, logger
                 "what does he eat?",
                 [
                     Document(
-                        page_content="The night is black.",
-                        metadata={},
-                    ),
-                    Document(
                         page_content="He eats\napples and plays football. "
                                      "My name is Philippe. He eats pears.",
-                        metadata={},
+                        metadata={"source":"http:www.sample.fr/2"},
+                    ),
+                    Document(
+                        page_content="The night is black.",
+                        metadata={"source":"http:www.sample.fr/1"},
                     ),
                     Document(
                         page_content="He eats carrots. I like football.",
-                        metadata={},
+                        metadata={"source":"http:www.sample.fr/3"},
                     ),
                     Document(
                         page_content="The Earth is round.",
-                        metadata={},
+                        metadata={"source":"http:www.sample.fr/1"},
                     ),
                 ],
                 {
                     "stuff": (
                             {
-                                0: "```\n"
-                                   '{"response": "He eats apples, pears and carrots.", '
-                                   '"documents": [{"ids": ["_idx_1", "_idx_2"], '
-                                   '"verbatims": ['
-                                   '"He eats apples and plays football.", '
-                                   '"He eats pears.", '
-                                   '"He eats carrots."]}]}'
-                                   "```"
+                                0: " He eats apples, pears and carrots.\n"
+                                    "SOURCES: http:www.sample.fr/2, http:www.sample.fr/3"
                             },
                             [
                                 ["He eats\napples and plays football.",
@@ -60,21 +55,12 @@ from .test_qa_with_references import ALL_CHAIN_TYPE, init_llm, CALLBACKS, logger
                     ),
                     "map_reduce": (
                             {
-                                0: 'Output: {"ids": [], "verbatims": []}',
-                                1: "Output:\n"
-                                   '{"ids": ["_idx_1", "_idx_2"], '
-                                   '"verbatims": ["He eats apples", "He eats pears"]}',
-                                2: "Output: \n"
-                                   '{"ids": ["_idx_0"], '
-                                   '"verbatims": ["He eats carrots."]}',
-                                3: 'Output: {"ids": [], "verbatims": []}',
-                                4: '{"response": "He eats apples, He eats pears, '
-                                   'He eats carrots.", "documents": '
-                                   '[{"ids": ["_idx_0"], "verbatims": '
-                                   '["He eats carrots."]}, '
-                                   '{"ids": ["_idx_1", "_idx_2"], '
-                                   '"verbatims": ["He eats apples", "He eats pears"]}]}',
-                                5: "He eats apples, He eats pears, He eats carrots.",
+                                0: 'None',
+                                1: 'He eats apples and pears.',
+                                2: 'He eats carrots.',
+                                3: 'None',
+                                4: ' He eats apples, pears and carrots.\n'
+                                    'SOURCES: http:www.sample.fr/2, http:www.sample.fr/3',
                             },
                             [["eats apples", "eats pears"], ["eats carrots"]],
                             r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
@@ -82,33 +68,13 @@ from .test_qa_with_references import ALL_CHAIN_TYPE, init_llm, CALLBACKS, logger
                     ),
                     "refine": (
                             {
-                                0: "The output would be:\n"
-                                   '{"response": '
-                                   '"I don\'t know", '
-                                   '"documents": ['
-                                   '{"ids": ["_idx_0"], "verbatims": []}]}',
-                                1: '{"response": "He eats apples and pears.", '
-                                   '"documents": [{"ids": ['
-                                   '"_idx_0", "_idx_1"], '
-                                   '"verbatims": ['
-                                   '"He eats apples and plays football.", '
-                                   '"He eats pears."]}]}',
-                                2: "The output would be:\n"
-                                   '{"response": "He eats apples, pears, and carrots.", '
-                                   '"documents": ['
-                                   '{"ids": ["_idx_0", "_idx_1", "_idx_2", "_idx_3"], '
-                                   '"verbatims": ["He eats apples and plays football.", '
-                                   '"He eats pears.", "He eats carrots. '
+                                0: 'He eats apples and pears.',
+                                1: 'He eats apples, pears, and other fruits.',
+                                2: '"He eats apples, pears, carrots, and other fruits.\n' 
+                                    'Source: http:www.sample.fr/3'
                                    'I like football.","The Earth is round."]}]}',
-                                3: "The output would be:\n"
-                                   '{"response": "He eats apples, pears, and carrots.", '
-                                   '"documents": ['
-                                   '{"ids": ["_idx_0", "_idx_1", "_idx_2", "_idx_3"], '
-                                   '"verbatims": ['
-                                   '"He eats apples and plays football.", '
-                                   '"He eats pears.", '
-                                   '"He eats carrots. I like football.",'
-                                   '"The Earth is round."]}]}',
+                                3: 'He eats apples, pears, carrots, and other fruits and vegetables.\n' 
+                                    'Source: http:www.sample.fr/3',
                             },
                             [
                                 [],
@@ -153,7 +119,7 @@ from .test_qa_with_references import ALL_CHAIN_TYPE, init_llm, CALLBACKS, logger
     ],
 )
 @pytest.mark.parametrize("chain_type", ALL_CHAIN_TYPE)
-def test_qa_with_reference_and_verbatims_chain(
+def test_qa_with_sources_chain(
         question: str,
         docs: List[Document],
         map_responses: Dict[str, Tuple[Dict[int, str], List[List[str]], str, Set[int]]],
@@ -166,9 +132,10 @@ def test_qa_with_reference_and_verbatims_chain(
 
     for i in range(0, 2):  # Retry if empty ?
         try:
-            qa_chain = QAWithReferencesAndVerbatimsChain.from_chain_type(
+            qa_chain = QAWithSourcesChain.from_chain_type(
                 llm=llm,
                 chain_type=chain_type,
+                return_source_documents= True,
             )
             answer = qa_chain(
                 inputs={
@@ -177,19 +144,19 @@ def test_qa_with_reference_and_verbatims_chain(
                 },
                 callbacks=CALLBACKS,
             )
-            answer_of_question = answer["answer"]
+            answer_of_question = answer["answer"].strip()
             if not answer_of_question:
                 logger.warning("Return nothing. Retry")
                 llm.cache = False
                 continue
+
+            # Old QA with sources
+            print(f'Source "{answer["sources"]}"')
+            for doc in answer.get('source_documents', []):
+                print(f'- Doc {doc.metadata["source"]}')
+
             assert re.match(expected_answer, answer_of_question)
-            for ref, original, assert_verbatims in zip(
-                    references, answer["source_documents"], verbatims
-            ):
-                assert docs[ref] is original, "Return incorrect original document"
-                assert compare_responses(
-                    original.metadata.get("verbatims", []), assert_verbatims
-                ), "Return incorrect verbatims"
+
             break
         except OutputParserException:
             llm.cache = False

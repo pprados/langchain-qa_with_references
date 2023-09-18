@@ -10,7 +10,7 @@ _map_verbatim_parser: BaseOutputParser = PydanticOutputParser(
 )
 
 _rank_parser = RegexParser(
-    regex=r"(.*?)\nScore: (\d*)",
+    regex=r"(.*)\n?Score: (\d*)",
     output_keys=["answer", "score"],
 )
 

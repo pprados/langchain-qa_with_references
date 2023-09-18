@@ -7,7 +7,7 @@ from langchain.schema import BaseOutputParser
 from .references import References
 
 _rank_parser = RegexParser(
-    regex=r"(.*?)\nScore: (\d*)",
+    regex=r"(.*)\n?Score: (\d*)",
     output_keys=["answer", "score"],
 )
 
