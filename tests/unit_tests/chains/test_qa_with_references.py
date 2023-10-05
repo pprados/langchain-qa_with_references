@@ -149,7 +149,7 @@ def compare_responses(responses: List[str], assert_responses: List[str]) -> bool
                     {
                         0: "```\n"
                         "He eats apples, pears and carrots.\n"
-                        "IDX: _idx_1, _idx_2\n"
+                        "IDS: _idx_1, _idx_2\n"
                         "```\n",
                     },
                     r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
@@ -163,20 +163,20 @@ def compare_responses(responses: List[str], assert_responses: List[str]) -> bool
                         2: 'Output: {"lines": ["_idx_1: He eats carrots."]}',
                         3: 'Output: {"lines": []}',
                         4: " He eats apples, pears, and carrots.\n"
-                        "IDX: _idx_1, _idx_3, _idx_2\n",
+                        "IDS: _idx_1, _idx_3, _idx_2\n",
                     },
                     r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
                     {1, 2},
                 ),
                 "refine": (
                     {
-                        0: "Answer: I don't know.\nIDX: _idx_0\n",
+                        0: "Answer: I don't know.\nIDS: _idx_0\n",
                         1: "Answer: He eats apples, pears "
-                        "and plays football.\nIDX: _idx_0, _idx_1\n",
+                        "and plays football.\nIDS: _idx_0, _idx_1\n",
                         2: "Answer: He eats apples, pears, carrots "
-                        "and plays football.\nIDX: _idx_0, _idx_1, _idx_2\n",
+                        "and plays football.\nIDS: _idx_0, _idx_1, _idx_2\n",
                         3: "Answer: He eats apples, pears, carrots "
-                        "and plays football.\nIDX: _idx_0, _idx_1, _idx_2, _idx_3\n",
+                        "and plays football.\nIDS: _idx_0, _idx_1, _idx_2, _idx_3\n",
                     },
                     r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
                     {1, 2},

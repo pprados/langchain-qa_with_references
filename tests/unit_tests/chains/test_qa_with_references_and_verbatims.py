@@ -195,9 +195,9 @@ def test_qa_with_reference_and_verbatims_chain(
                     original.metadata.get("verbatims", []), assert_verbatims
                 ), "Return incorrect verbatims"
             break
-        except OutputParserException:
+        except OutputParserException as e:
             llm.cache = False
-            logger.warning("Parsing error. Retry")
+            logger.warning("Parsing error. Retry",e)
             continue  # Retry
     else:
         print(f"Response is Empty after {i + 1} tries.")

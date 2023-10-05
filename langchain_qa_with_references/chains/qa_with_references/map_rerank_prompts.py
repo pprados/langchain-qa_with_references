@@ -40,8 +40,6 @@ How to determine the score:
 - If you do not know the answer based on the context, that should be a score of 0
 - Don't be overconfident!
 
-The ids must be only in the form '_idx_<number>'.
-
 Process step by step:
 - extract the references ("IDS")
 - answers the question

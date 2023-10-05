@@ -2,6 +2,11 @@
 from langchain.prompts import PromptTemplate
 from .verbatims import verbatims_parser
 
+EXAMPLE_PROMPT = PromptTemplate(
+    template="ids: {_idx}\n" "Content: {page_content}\n",
+    input_variables=["page_content", "_idx"],
+)
+
 _initial_qa_prompt_template = """
 Context information is below. 
 ---------------------
@@ -9,7 +14,7 @@ Context information is below.
 ---------------------
 Process step by step:
 - ignore prior knowledge
-- extract references ("IDX")
+- extract references ("IDS")
 - extract all the exact verbatims from the texts only if they are relevant to answering the question, in a list of strings 
 - create a final answer
 - produce the json result
@@ -48,7 +53,7 @@ If you don't know how to refine the original answer, does not modify the answer.
 Process step by step:
 - ignore prior knowledge
 - with the new context 
-    - extract references of the new context ("IDX")
+    - extract references of the new context ("IDS")
     - add all the exact verbatims from the texts of the new context, only if they are relevant to answering the question, in a list of strings 
 - refine the original answer to better answer the question. ONLY if you do update it
 - append the new IDS and add verbatims of texts from the existing answser IDS as well. 
@@ -72,7 +77,3 @@ REFINE_PROMPT = PromptTemplate(
 )
 
 
-EXAMPLE_PROMPT = PromptTemplate(
-    template="ids: {_idx}\n" "Content: {page_content}\n",
-    input_variables=["page_content", "_idx"],
-)

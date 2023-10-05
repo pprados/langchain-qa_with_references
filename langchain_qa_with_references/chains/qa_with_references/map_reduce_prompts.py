@@ -6,6 +6,10 @@ from .references import references_parser, References
 
 _map_verbatim_parser = LineListOutputParser()
 
+EXAMPLE_PROMPT = PromptTemplate(
+    template="Content: {page_content}\n" "Ids: {_idx}",
+    input_variables=["page_content", "_idx"],
+)
 
 # Use some object. It's easier to update the verbatims schema.
 _response_example_1 = References(
@@ -86,7 +90,3 @@ COMBINE_PROMPT = PromptTemplate(
     output_parser=references_parser,
 )
 
-EXAMPLE_PROMPT = PromptTemplate(
-    template="Content: {page_content}\n" "Ids: {_idx}",
-    input_variables=["page_content", "_idx"],
-)

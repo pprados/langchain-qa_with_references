@@ -30,7 +30,7 @@ class References(BaseModel):
 
     def __str__(self) -> str:
         if _OPTIMIZE:
-            return f'{self.response}\nIDX:{",".join(map(str, self.documents_ids))}'
+            return f'{self.response}\nIDS:{",".join(map(str, self.documents_ids))}'
         else:
             return self.json()
 
@@ -56,12 +56,12 @@ if _OPTIMIZE:
             return (
                 "Your response should be in the form:\n"
                 "Answer:the response\n"
-                "IDX: a comma-separated list of document identifiers used "
+                "IDS: a comma-separated list of document identifiers used "
                 "in the response"
             )
 
         def parse(self, text: str) -> References:
-            regex = r"(?:Answer:)?(.*)\nIDX:(.*)"
+            regex = r"(?:Answer:)?(.*)\nIDS:(.*)"
             match = re.search(regex, text)
             if match:
                 ids: Set[int] = set()

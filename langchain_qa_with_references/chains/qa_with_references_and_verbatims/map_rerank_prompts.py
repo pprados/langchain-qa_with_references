@@ -3,11 +3,7 @@ from langchain.output_parsers import PydanticOutputParser, RegexParser
 from langchain.prompts import PromptTemplate
 from langchain.schema import BaseOutputParser
 
-from .verbatims import VerbatimsFromDoc, Verbatims
-
-_map_verbatim_parser: BaseOutputParser = PydanticOutputParser(
-    pydantic_object=VerbatimsFromDoc
-)
+from .verbatims import VerbatimsFromDoc, Verbatims, verbatims_parser
 
 _rank_parser = RegexParser(
     regex=r"(.*)\n?Score: (\d*)",
@@ -93,7 +89,7 @@ PROMPT = PromptTemplate(
     template=prompt_template,
     input_variables=["context", "question"],
     partial_variables={
-        "format_instructions": _map_verbatim_parser.get_format_instructions(),
+        "format_instructions": verbatims_parser.get_format_instructions(),
         "response_example_1": _response_example_1.json(),
         "response_example_2": _response_example_2.json(),
         "response_example_3": _response_example_3.json(),

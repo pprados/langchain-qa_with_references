@@ -4,6 +4,11 @@
 from langchain.prompts import PromptTemplate
 from .references import references_parser, References
 
+EXAMPLE_PROMPT = PromptTemplate(
+    template="Content: {page_content}\n" "Ids: {_idx}",
+    input_variables=["page_content", "_idx"],
+)
+
 _response_example_1 = References(
     response="This Agreement is governed by English law.",
     documents_ids=["_idx_0"],
@@ -77,8 +82,4 @@ PROMPT = PromptTemplate(
         "_response_example_2": str(_response_example_2),
     },
     output_parser=references_parser,
-)
-EXAMPLE_PROMPT = PromptTemplate(
-    template="Content: {page_content}\n" "idx: {_idx}",
-    input_variables=["page_content", "_idx"],
 )

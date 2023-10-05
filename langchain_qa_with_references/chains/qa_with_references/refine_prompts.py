@@ -1,6 +1,12 @@
 # flake8: noqa
 from langchain.prompts import PromptTemplate
+
 from .references import references_parser
+
+EXAMPLE_PROMPT = PromptTemplate(
+    template="Content: {page_content}\n" "ids: {_idx}\n",
+    input_variables=["page_content", "_idx"],
+)
 
 _initial_qa_prompt_template = """
 Context information is below. 
@@ -9,7 +15,7 @@ Context information is below.
 ---------------------
 Process step by step:
 - ignore prior knowledge
-- extract references ("IDX")
+- extract references ("IDS")
 - create a final answer
 - produce the json result
 
@@ -65,10 +71,4 @@ REFINE_PROMPT = PromptTemplate(
         "format_instructions": references_parser.get_format_instructions()
     },
     output_parser=references_parser,
-)
-
-
-EXAMPLE_PROMPT = PromptTemplate(
-    template="Content: {page_content}\n" "ids: {_idx}\n",
-    input_variables=["page_content", "_idx"],
 )

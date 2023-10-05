@@ -5,6 +5,12 @@ from langchain.retrievers.multi_query import LineListOutputParser
 
 from .verbatims import VerbatimsFromDoc, verbatims_parser, Verbatims
 
+
+EXAMPLE_PROMPT = PromptTemplate(
+    template="Ids: {_idx}\n" "Content: {page_content}\n",
+    input_variables=["page_content", "_idx"],
+)
+
 _map_verbatim_parser = LineListOutputParser()
 
 _question_prompt_template = """
