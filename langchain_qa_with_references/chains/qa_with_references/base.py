@@ -178,6 +178,7 @@ class BaseQAWithReferencesChain(Chain, ABC):
         llm_chain: Optional[LLMChain] = None
         if not parser:
             if self.chain_type == "map_rerank":
+                # self.combine_documents_chain.llm_chain.prompt.output_parser
                 assert self.output_parser
             elif self.chain_type == "map_reduce":
                 llm_chain = cast(

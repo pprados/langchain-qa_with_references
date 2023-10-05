@@ -52,35 +52,6 @@ Question: [question here]
 Helpful Answer: [json answer here]
 Score: [to the next line, score between 0 and 100]
 
-Example #1
-Context:
----------
-Apples are red. The car is blue.
----------
-Question: what color are apples?
-Helpful Answer: red
-Score: 100
-
-Example #2
-Context:
----------
-it was night and the witness forgot his glasses. he was not sure if it was a sports car or an suv
----------
-Question: what type was the car?
-Helpful Answer: a sports car or an suv
-Score: 60
-
-Example #3
-Context:
----------
-Pears are either red or orange
----------
-Question: what color are apples?
-Helpful Answer: This document does not answer the question
-Score: 0
-
-Begin!
-
 Context:
 ---------
 {context}

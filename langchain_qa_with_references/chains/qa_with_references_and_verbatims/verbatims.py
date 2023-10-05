@@ -61,5 +61,6 @@ class Verbatims(BaseModel):
     """ The list of documents and verbatims"""
 
 
+verbatims_from_doc_parser: BaseOutputParser = PydanticOutputParser(pydantic_object=VerbatimsFromDoc)
 verbatims_parser: BaseOutputParser = PydanticOutputParser(pydantic_object=Verbatims)
 """ A parser for this object """

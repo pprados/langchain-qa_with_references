@@ -10,20 +10,6 @@ _rank_parser = RegexParser(
     output_keys=["answer", "score"],
 )
 
-_response_example_1 = Verbatims(
-    response="red", documents=[VerbatimsFromDoc(ids=[99], verbatims=["Apples are red"])]
-)
-_response_example_2 = Verbatims(
-    response="a sports car or an suv",
-    documents=[
-        VerbatimsFromDoc(
-            ids=[99], verbatims=["he was not sure if it was a sports car or an suv"]
-        )
-    ],
-)
-_response_example_3 = Verbatims(
-    response="This document does not answer the question", documents=[]
-)
 prompt_template = """
 Given the following extracts from several documents, a question and not prior knowledge. 
 
@@ -50,35 +36,6 @@ Question: [question here]
 Helpful Answer: [json answer here]
 Score: [to the next line, score between 0 and 100]
 
-Example #1
-Context:
----------
-Apples are red. The car is blue.
----------
-Question: what color are apples?
-Helpful Answer: {response_example_1}
-Score: 100
-
-Example #2
-Context:
----------
-it was night and the witness forgot his glasses. he was not sure if it was a sports car or an suv
----------
-Question: what type was the car?
-Helpful Answer: {response_example_2}
-Score: 60
-
-Example #3
-Context:
----------
-Pears are either red or orange
----------
-Question: what color are apples?
-Helpful Answer: {response_example_3}
-Score: 0
-
-Begin!
-
 Context:
 ---------
 {context}
@@ -90,9 +47,6 @@ PROMPT = PromptTemplate(
     input_variables=["context", "question"],
     partial_variables={
         "format_instructions": verbatims_parser.get_format_instructions(),
-        "response_example_1": _response_example_1.json(),
-        "response_example_2": _response_example_2.json(),
-        "response_example_3": _response_example_3.json(),
     },
     output_parser=_rank_parser,
 )

@@ -14,7 +14,7 @@ from tests.unit_tests.fake_llm import FakeLLM
 FAKE_LLM = True
 VERBOSE_PROMPT = False
 VERBOSE_RESULT = False
-USE_CACHE = False
+USE_CACHE = True
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 5
 TEMPERATURE = 0.0
