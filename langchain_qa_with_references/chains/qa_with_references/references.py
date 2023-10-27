@@ -55,9 +55,9 @@ if _OPTIMIZE:
         def get_format_instructions(self) -> str:
             return (
                 "Your response should be in the form:\n"
-                "Answer:the response\n"
-                "IDS: a comma-separated list of document identifiers used "
-                "in the response"
+                "Answer: the response\n"
+                "IDS: in a new line, a comma-separated list of document identifiers used "
+                "in the response. The ids must have the form _idx_<number>."
             )
 
         def parse(self, text: str) -> References:

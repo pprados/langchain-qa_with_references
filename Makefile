@@ -127,7 +127,7 @@ else
 	[[ $$( find dist -name "*.dev*" | wc -l ) == 0 ]] || \
 		( echo -e "$(red)Add a tag version in GIT before release$(normal)" \
 		; exit 1 )
-	rm -f dist/*.asc
+	#rm -f dist/*
 	echo "Enter Pypi password"
 	twine upload  \
 		$(shell find dist -type f \( -name "*.whl" -or -name '*.gz' \) -and ! -iname "*dev*" )

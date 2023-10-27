@@ -156,7 +156,7 @@ class BaseQAWithReferencesChain(Chain, ABC):
 
         documents_idx = set()
         for str_doc_id in references.documents_ids:
-            m = re.match(r"_idx_(\d+)", str_doc_id.strip())
+            m = re.match(r"(?:_idx_)?(\d+)", str_doc_id.strip())
             if m:
                 documents_idx.add(int(m[1]))
             else:
