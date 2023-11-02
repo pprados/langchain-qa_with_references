@@ -27,7 +27,7 @@ from .map_reduce_prompts import (
     EXAMPLE_PROMPT,
     QUESTION_PROMPT,
 )
-from .verbatims import Verbatims, verbatims_parser, verbatims_from_doc_parser
+from .verbatims import Verbatims, verbatims_from_doc_parser, verbatims_parser
 
 logger = logging.getLogger(__name__)
 

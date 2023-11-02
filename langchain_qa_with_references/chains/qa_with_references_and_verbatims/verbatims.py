@@ -62,8 +62,10 @@ class Verbatims(BaseModel):
 
 
 verbatims_from_doc_parser: BaseOutputParser = PydanticOutputParser(
-    pydantic_object=VerbatimsFromDoc)
+    pydantic_object=VerbatimsFromDoc
+)
 verbatims_parser: BaseOutputParser = PydanticOutputParser(pydantic_object=Verbatims)
-empty_value:str = Verbatims(response="I don't known", documents=[]).json
+empty_value: str = Verbatims(response="I don't known",
+                             documents=[]).json()  # Pydantic 1
 
 """ A parser for this object """

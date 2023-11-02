@@ -20,7 +20,9 @@ CHUNK_OVERLAP = 5
 TEMPERATURE = 0.0
 MAX_TOKENS = 1000
 ALL_CHAIN_TYPE = ["stuff", "map_reduce", "refine", "map_rerank"]  # FIXME
-ALL_CHAIN_TYPE = ["stuff",]
+ALL_CHAIN_TYPE = [
+    "stuff",
+]
 
 CALLBACKS: Callbacks = []
 

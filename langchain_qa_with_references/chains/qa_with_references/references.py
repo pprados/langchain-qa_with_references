@@ -32,7 +32,7 @@ class References(BaseModel):
         if _OPTIMIZE:
             return f'{self.response}\nIDS:{",".join(map(str, self.documents_ids))}'
         else:
-            return self.json()
+            return self.json()  # Pydantic 1
 
 
 references_parser: BaseOutputParser
@@ -81,4 +81,5 @@ if _OPTIMIZE:
     empty_value = "I don't know"
 else:
     references_parser = PydanticOutputParser(pydantic_object=References)
-    empty_value = References(response="I don't know", documents_ids=set()).json()
+    empty_value = References(response="I don't know",
+                             documents_ids=set()).json()  # Pydantic 1

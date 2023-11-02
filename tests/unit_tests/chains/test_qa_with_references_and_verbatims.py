@@ -197,7 +197,7 @@ def test_qa_with_reference_and_verbatims_chain(
             break
         except OutputParserException as e:
             llm.cache = False
-            logger.warning("Parsing error. Retry",e)
+            logger.warning("Parsing error. Retry", e)
             continue  # Retry
     else:
         print(f"Response is Empty after {i + 1} tries.")

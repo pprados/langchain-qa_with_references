@@ -54,4 +54,3 @@ COMBINE_PROMPT = PromptTemplate(
     },
     output_parser=references_parser,
 )
-

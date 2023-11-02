@@ -190,7 +190,7 @@ class BaseQAWithReferencesChain(Chain, ABC):
                 # Simple chain
                 llm_chain = cast(Any, self.combine_documents_chain).llm_chain
         if llm_chain:
-            parser = llm_chain.prompt.output_parser or llm_chain.output_parser
+            parser = llm_chain.prompt.output_parser
         assert parser
 
         try:
@@ -202,11 +202,11 @@ class BaseQAWithReferencesChain(Chain, ABC):
             for doc in docs:
                 del doc.metadata["_idx"]
             return answer, idx
-        except (OutputParserException,ValueError) as e:
+        except (OutputParserException, ValueError) as e:
             # Probably that the answer has been cut off.
             raise OutputParserException(
-                'The response is probably cut off. Change the `max_tokens` parameter.\n'+
-                str(e)
+                "The response is probably cut off. Change the `max_tokens` parameter.\n"
+                + str(e)
             ).with_traceback(e.__traceback__)
         # except Exception as e:
         #     if run_manager:

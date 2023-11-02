@@ -62,4 +62,3 @@ COMBINE_PROMPT = PromptTemplate(
     },
     output_parser=verbatims_parser,
 )
-
