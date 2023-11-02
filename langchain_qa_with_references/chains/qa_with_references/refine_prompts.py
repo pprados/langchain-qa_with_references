@@ -1,7 +1,7 @@
 # flake8: noqa
 from langchain.prompts import PromptTemplate
 
-from .references import references_parser
+from .references import references_parser, empty_value
 
 EXAMPLE_PROMPT = PromptTemplate(
     template="Content: {page_content}\n" "ids: {_idx}\n",
@@ -59,7 +59,7 @@ Process step by step:
 ALWAYS return a "IDS" part in your answer. 
 If the context isn't useful, return the original answer.
 
-If you don't know the answer, just say that you don't know. Don't try to make up an answer.
+If you don't know the answer, just say '{empty_value}'. Don't try to make up an answer.
 
 {format_instructions}
 """
@@ -68,7 +68,8 @@ REFINE_PROMPT = PromptTemplate(
     input_variables=["question", "existing_answer", "context_str"],
     template=_refine_prompt_template,
     partial_variables={
-        "format_instructions": references_parser.get_format_instructions()
+        "format_instructions": references_parser.get_format_instructions(),
+        "empty_value": empty_value,
     },
     output_parser=references_parser,
 )

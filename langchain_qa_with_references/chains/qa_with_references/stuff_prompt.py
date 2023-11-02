@@ -2,7 +2,7 @@
 
 
 from langchain.prompts import PromptTemplate
-from .references import references_parser, References
+from .references import references_parser, References, empty_value
 
 EXAMPLE_PROMPT = PromptTemplate(
     template="Content: {page_content}\n" "Ids: {_idx}",
@@ -15,7 +15,7 @@ Process step by step:
 - creates a final answer
 - produces the json result
 
-If you don't know the answer, just say that you don't know. Don't try to make up an answer.
+If you don't know the answer, just say '{empty_value}'. Don't try to make up an answer.
 ALWAYS return a "IDS" part in your answer in another line.
 
 QUESTION: {question}
@@ -32,6 +32,7 @@ PROMPT = PromptTemplate(
     input_variables=["summaries", "question"],
     partial_variables={
         "format_instructions": references_parser.get_format_instructions(),
+        "empty_value": empty_value,
     },
     output_parser=references_parser,
 )

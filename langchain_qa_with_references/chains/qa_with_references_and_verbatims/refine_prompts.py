@@ -1,6 +1,6 @@
 # flake8: noqa
 from langchain.prompts import PromptTemplate
-from .verbatims import verbatims_parser
+from .verbatims import verbatims_parser, empty_value
 
 EXAMPLE_PROMPT = PromptTemplate(
     template="ids: {_idx}\n" "Content: {page_content}\n",
@@ -21,7 +21,7 @@ Process step by step:
 
 Given the context information the question: {question}
 
-If you don't know the answer, just say that you don't know, without references, and does not extract any verbatim. 
+If you don't know the answer, just say '{empty_value}', without references, and does not extract any verbatim. 
 Don't try to make up an answer.
 
 The ids must be only in the form '_idx_<number>'.
@@ -32,7 +32,8 @@ INITIAL_QA_PROMPT = PromptTemplate(
     input_variables=["context_str", "question"],
     template=_initial_qa_prompt_template,
     partial_variables={
-        "format_instructions": verbatims_parser.get_format_instructions()
+        "format_instructions": verbatims_parser.get_format_instructions(),
+        "empty_value": empty_value,
     },
     output_parser=verbatims_parser,
 )
@@ -62,7 +63,7 @@ Process step by step:
 ALWAYS return a "IDS" part in your answer. 
 If the context isn't useful, return the original answer.
 
-If you don't know the answer, just say that you don't know. Don't try to make up an answer.
+If you don't know the answer, just say '{empty_value}'. Don't try to make up an answer.
 
 {format_instructions}
 """
@@ -71,7 +72,8 @@ REFINE_PROMPT = PromptTemplate(
     input_variables=["question", "existing_answer", "context_str"],
     template=_refine_prompt_template,
     partial_variables={
-        "format_instructions": verbatims_parser.get_format_instructions()
+        "format_instructions": verbatims_parser.get_format_instructions(),
+        "empty_value": empty_value,
     },
     output_parser=verbatims_parser,
 )

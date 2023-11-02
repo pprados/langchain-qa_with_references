@@ -16,8 +16,8 @@ def _extract_original_verbatim(verbatim: str, page_content: str) -> Optional[str
     """
     only_words = filter(len, re.split(r"[^\w]+", verbatim))
     regex_for_words_in_same_oder = (
-        r"(?i)\b" + r"\b[^\w]+".join(only_words) + r"\b"
-        r"\s*[.!?:;]?"
+            r"(?i)\b" + r"\b[^\w]+".join(only_words) + r"\b"
+                                                       r"\s*[.!?:;]?"
         # Optional end of sentence
     )
     match = re.search(regex_for_words_in_same_oder, page_content, re.IGNORECASE)
@@ -61,6 +61,9 @@ class Verbatims(BaseModel):
     """ The list of documents and verbatims"""
 
 
-verbatims_from_doc_parser: BaseOutputParser = PydanticOutputParser(pydantic_object=VerbatimsFromDoc)
+verbatims_from_doc_parser: BaseOutputParser = PydanticOutputParser(
+    pydantic_object=VerbatimsFromDoc)
 verbatims_parser: BaseOutputParser = PydanticOutputParser(pydantic_object=Verbatims)
+empty_value:str = Verbatims(response="I don't known", documents=[]).json
+
 """ A parser for this object """

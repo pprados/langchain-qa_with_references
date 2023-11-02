@@ -3,8 +3,7 @@
 from langchain.prompts import PromptTemplate
 from langchain.retrievers.multi_query import LineListOutputParser
 
-from .verbatims import VerbatimsFromDoc, verbatims_parser, Verbatims
-
+from .verbatims import VerbatimsFromDoc, verbatims_parser, Verbatims, empty_value
 
 EXAMPLE_PROMPT = PromptTemplate(
     template="Ids: {_idx}\n" "Content: {page_content}\n",
@@ -22,6 +21,7 @@ Use the following portion of a long document to see if any of the text is releva
 Question: {question}
 
 Extract all verbatims from texts relevant to answering the question in separate strings else output an empty array.
+If you are not confident with your answer, say '{empty_value}'. 
 {format_instructions}
 
 """
@@ -30,7 +30,8 @@ QUESTION_PROMPT = PromptTemplate(
     template=_question_prompt_template,
     input_variables=["context", "question"],
     partial_variables={
-        "format_instructions": _map_verbatim_parser.get_format_instructions()
+        "format_instructions": _map_verbatim_parser.get_format_instructions(),
+        "empty_value": empty_value,
     },
     output_parser=_map_verbatim_parser,
 )
@@ -42,6 +43,7 @@ Process step by step:
 - extract all verbatims
 - extract all associated ids
 - create a final response with these verbatims
+- If you are not confident with your answer, say '{empty_value}'. 
 - produces the json result
 
 QUESTION: {question}
@@ -56,6 +58,7 @@ COMBINE_PROMPT = PromptTemplate(
     input_variables=["summaries", "question"],
     partial_variables={
         "format_instructions": verbatims_parser.get_format_instructions(),
+        "empty_value": empty_value,
     },
     output_parser=verbatims_parser,
 )

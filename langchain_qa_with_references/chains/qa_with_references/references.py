@@ -55,13 +55,16 @@ if _OPTIMIZE:
         def get_format_instructions(self) -> str:
             return (
                 "Your response should be in the form:\n"
-                "Answer: the response\n"
-                "IDS: in a new line, a comma-separated list of document identifiers used "
-                "in the response. The ids must have the form _idx_<number>."
+                "Answer: the response.\n"
+                "At the start of a new line 'IDS:' followed by a comma-separated list of document identifiers used "
+                "in the response. The ids must have the form _idx_<number>.\n"
+                "\n"
+                "Answer: my response\n"
+                "IDS: _idx_1, _idx_2\n\n"
             )
 
         def parse(self, text: str) -> References:
-            regex = r"(?:Answer:)?(.*)\nIDS:(.*)"
+            regex = r"(?:Answer:)?(.*)\sIDS:(.*)"
             match = re.search(regex, text)
             if match:
                 ids: Set[int] = set()
@@ -75,5 +78,7 @@ if _OPTIMIZE:
                 raise ValueError(f"Could not parse output: {text}")
 
     references_parser = _ReferencesParser()
+    empty_value = "I don't know"
 else:
     references_parser = PydanticOutputParser(pydantic_object=References)
+    empty_value = References(response="I don't know", documents_ids=set()).json()

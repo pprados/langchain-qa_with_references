@@ -2,7 +2,7 @@
 
 
 from langchain.prompts import PromptTemplate
-from .verbatims import verbatims_parser, Verbatims, VerbatimsFromDoc
+from .verbatims import verbatims_parser, Verbatims, VerbatimsFromDoc, empty_value
 
 _template = """Given the following extracts from several documents, a question and not prior knowledge. 
 Process step by step:
@@ -12,7 +12,7 @@ Process step by step:
 - creates a final answer
 - produces the json result
 
-If you don't know the answer, just say that you don't know. Don't try to make up an answer.
+If you don't know the answer, just say '{empty_value}'. Don't try to make up an answer.
 ALWAYS return a "IDS" part in your answer in another line.
 
 QUESTION: {question}
@@ -29,6 +29,7 @@ PROMPT = PromptTemplate(
     input_variables=["summaries", "question"],
     partial_variables={
         "format_instructions": verbatims_parser.get_format_instructions(),
+        "empty_value": empty_value,
     },
     output_parser=verbatims_parser,
 )

@@ -3,7 +3,7 @@ from langchain.output_parsers import PydanticOutputParser, RegexParser
 from langchain.prompts import PromptTemplate
 from langchain.schema import BaseOutputParser
 
-from .verbatims import VerbatimsFromDoc, Verbatims, verbatims_parser
+from .verbatims import VerbatimsFromDoc, Verbatims, verbatims_parser, empty_value
 
 _rank_parser = RegexParser(
     regex=r"(.*)\n?Score: (\d*)",
@@ -25,6 +25,7 @@ Process step by step:
 - extract the references ("IDS")
 - extract all the verbatims from the texts only if they are relevant to answering the question, in a list of strings 
 - answers the question
+- If you are not confident with your answer, say '{empty_value}'. 
 - calculates a score of how fully it answered the user's question
 - creates a final answer
 
@@ -47,6 +48,7 @@ PROMPT = PromptTemplate(
     input_variables=["context", "question"],
     partial_variables={
         "format_instructions": verbatims_parser.get_format_instructions(),
+        "empty_value": empty_value,
     },
     output_parser=_rank_parser,
 )

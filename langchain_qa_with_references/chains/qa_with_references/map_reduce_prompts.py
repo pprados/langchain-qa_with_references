@@ -2,7 +2,7 @@
 
 from langchain.prompts import PromptTemplate
 from langchain.retrievers.multi_query import LineListOutputParser
-from .references import references_parser, References
+from .references import references_parser, References, empty_value
 
 _map_verbatim_parser = LineListOutputParser()
 
@@ -40,7 +40,7 @@ QUESTION: {question}
 =========
 {summaries}
 =========
-If you are not confident with your answer, say 'I don't know'. 
+If you are not confident with your answer, say '{empty_value}'. 
 {format_instructions}
 FINAL ANSWER:"""
 COMBINE_PROMPT = PromptTemplate(
@@ -48,6 +48,7 @@ COMBINE_PROMPT = PromptTemplate(
     input_variables=["summaries", "question"],
     partial_variables={
         "format_instructions": references_parser.get_format_instructions(),
+        "empty_value": empty_value,
         # "response_example_1": str(_response_example_1),
         # "response_example_2": str(_response_example_2),
     },

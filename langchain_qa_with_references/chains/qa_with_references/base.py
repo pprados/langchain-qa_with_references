@@ -19,7 +19,7 @@ from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.chains.llm import LLMChain
 from langchain.docstore.document import Document
 from langchain.pydantic_v1 import Extra
-from langchain.schema import BaseOutputParser, BasePromptTemplate
+from langchain.schema import BaseOutputParser, BasePromptTemplate, OutputParserException
 
 from .loading import (
     load_qa_with_references_chain,
@@ -190,20 +190,24 @@ class BaseQAWithReferencesChain(Chain, ABC):
                 # Simple chain
                 llm_chain = cast(Any, self.combine_documents_chain).llm_chain
         if llm_chain:
-            parser = llm_chain.prompt.output_parser
+            parser = llm_chain.prompt.output_parser or llm_chain.output_parser
         assert parser
 
-        references = parser.parse(answer)
-        answer = references.response
+        try:
+            references = parser.parse(answer)
+            answer = references.response
 
-        idx = self._process_reference(answers, docs, references)
+            idx = self._process_reference(answers, docs, references)
 
-        for doc in docs:
-            del doc.metadata["_idx"]
-        return answer, idx
-        # except OutputParserException as e:
-        #     # Probably that the answer has been cut off.
-        #     raise e
+            for doc in docs:
+                del doc.metadata["_idx"]
+            return answer, idx
+        except (OutputParserException,ValueError) as e:
+            # Probably that the answer has been cut off.
+            raise OutputParserException(
+                'The response is probably cut off. Change the `max_tokens` parameter.\n'+
+                str(e)
+            ).with_traceback(e.__traceback__)
         # except Exception as e:
         #     if run_manager:
         #         run_manager.on_chain_error(e)
