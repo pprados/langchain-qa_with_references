@@ -81,5 +81,6 @@ if _OPTIMIZE:
     empty_value = "I don't know"
 else:
     references_parser = PydanticOutputParser(pydantic_object=References)
-    empty_value = References(response="I don't know",
-                             documents_ids=set()).json()  # Pydantic 1
+    empty_value = References(
+        response="I don't know", documents_ids=set()
+    ).json()  # Pydantic 1
