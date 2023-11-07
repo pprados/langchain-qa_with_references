@@ -173,6 +173,7 @@ def test_qa_with_reference_and_verbatims_chain(
             qa_chain = QAWithReferencesAndVerbatimsChain.from_chain_type(
                 llm=llm,
                 chain_type=chain_type,
+                original_verbatim=True,
             )
             answer = qa_chain(
                 inputs={

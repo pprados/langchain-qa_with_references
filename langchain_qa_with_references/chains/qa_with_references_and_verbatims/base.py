@@ -27,12 +27,15 @@ from .map_reduce_prompts import (
     EXAMPLE_PROMPT,
     QUESTION_PROMPT,
 )
-from .verbatims import Verbatims, verbatims_from_doc_parser, verbatims_parser
+from .verbatims import Verbatims, verbatims_parser
 
 logger = logging.getLogger(__name__)
 
 
 class BaseQAWithReferencesAndVerbatimsChain(BaseQAWithReferencesChain):
+    original_verbatim: bool = False
+    """ Set to true to extract the verbatim in the document (via regex) """
+
     def _process_reference(
         self, answers: Dict[str, Any], docs: List[Document], references: Any
     ) -> Set[int]:
@@ -58,9 +61,12 @@ class BaseQAWithReferencesAndVerbatimsChain(BaseQAWithReferencesChain):
                     if 0 <= doc_id < len(docs):  # Guard
                         if ref_doc.verbatims:
                             # Search the real verbatim if possible
-                            original_verbatim = ref_doc.original_verbatims(
-                                docs[doc_id].page_content
-                            )
+                            if self.original_verbatim:
+                                original_verbatim = ref_doc.original_verbatims(
+                                    docs[doc_id].page_content
+                                )
+                            else:
+                                original_verbatim = ref_doc.verbatims
                             if original_verbatim:
                                 idx.add(doc_id)
                                 docs[doc_id].metadata["verbatims"] = original_verbatim

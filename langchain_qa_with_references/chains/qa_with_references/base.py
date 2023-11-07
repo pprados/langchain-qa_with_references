@@ -205,8 +205,8 @@ class BaseQAWithReferencesChain(Chain, ABC):
         except (OutputParserException, ValueError) as e:
             # Probably that the answer has been cut off.
             raise OutputParserException(
-                "The response is probably cut off. Change the `max_tokens` parameter.\n"
-                + str(e)
+                "The response is probably cut off. Change the `max_tokens` parameter "
+                "or reduce the temperature.\n" + str(e)
             ).with_traceback(e.__traceback__)
         # except Exception as e:
         #     if run_manager:
@@ -257,7 +257,6 @@ class BaseQAWithReferencesChain(Chain, ABC):
             self.source_documents_key: selected_docs,
         }
 
-    # TODO: aligner le code
     async def _acall(
         self,
         inputs: Dict[str, Any],

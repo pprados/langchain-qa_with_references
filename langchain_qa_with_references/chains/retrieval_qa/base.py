@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import inspect
-import warnings
 from abc import abstractmethod
 from typing import Any, Dict, List, Optional
 
@@ -15,14 +14,12 @@ from langchain.chains.base import Chain
 from langchain.chains.combine_documents.base import BaseCombineDocumentsChain
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.chains.llm import LLMChain
+from langchain.chains.question_answering import load_qa_chain
 from langchain.chains.question_answering.stuff_prompt import PROMPT_SELECTOR
 from langchain.prompts import PromptTemplate
-from langchain.pydantic_v1 import Extra, Field, root_validator
+from langchain.pydantic_v1 import Extra, Field
 from langchain.schema import BaseRetriever, Document
 from langchain.schema.language_model import BaseLanguageModel
-from langchain.schema.vectorstore import VectorStore
-
-from langchain_qa_with_references.chains.question_answering import load_qa_chain
 
 
 class BaseRetrievalQA(Chain):

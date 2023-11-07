@@ -56,7 +56,8 @@ if _OPTIMIZE:
             return (
                 "Your response should be in the form:\n"
                 "Answer: the response.\n"
-                "At the start of a new line 'IDS:' followed by a comma-separated list of document identifiers used "
+                "At the start of a new line 'IDS:' followed by a comma-separated "
+                "list of document identifiers used "
                 "in the response. The ids must have the form _idx_<number>.\n"
                 "\n"
                 "Answer: my response\n"
