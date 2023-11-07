@@ -4,7 +4,7 @@ from langchain_qa_with_references.chains import (
     RetrievalQAWithReferencesAndVerbatimsChain,
 )
 
-from .test_integration_qa_with_references import (
+from tests.integration_tests.chains.test_integration_qa_with_references import (
     ALL_CHAIN_TYPE,
     ALL_SAMPLES,
     CHUNK_OVERLAP,

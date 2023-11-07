@@ -2,7 +2,7 @@ import re
 from typing import Dict, List, Set, Tuple
 
 import pytest
-from langchain import QAWithSourcesChain
+from langchain.chains import QAWithSourcesChain
 from langchain.schema import Document, OutputParserException
 
 from .test_qa_with_references import (

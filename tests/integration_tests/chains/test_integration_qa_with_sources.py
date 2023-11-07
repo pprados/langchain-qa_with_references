@@ -1,7 +1,7 @@
 import pytest
 from langchain.chains import RetrievalQAWithSourcesChain
 
-from .test_integration_qa_with_references import (
+from tests.integration_tests.chains.test_integration_qa_with_references import (
     ALL_CHAIN_TYPE,
     ALL_SAMPLES,
     REDUCE_K_BELOW_MAX_TOKENS,
