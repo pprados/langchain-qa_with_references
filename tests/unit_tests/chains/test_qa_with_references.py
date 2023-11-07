@@ -18,11 +18,8 @@ USE_CACHE = True
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 5
 TEMPERATURE = 0.0
-MAX_TOKENS = 1000
-ALL_CHAIN_TYPE = ["stuff", "map_reduce", "refine", "map_rerank"]  # FIXME
-ALL_CHAIN_TYPE = [
-    "stuff",
-]
+MAX_TOKENS = 2000
+ALL_CHAIN_TYPE = ["stuff", "map_reduce", "refine", "map_rerank"]
 
 CALLBACKS: Callbacks = []
 
@@ -173,13 +170,13 @@ def compare_responses(responses: List[str], assert_responses: List[str]) -> bool
                 ),
                 "refine": (
                     {
-                        0: "Answer: I don't know.\nIDS: _idx_0\n",
+                        0: "Answer: I don't know.\nIDS:\n",
                         1: "Answer: He eats apples, pears "
-                        "and plays football.\nIDS: _idx_0, _idx_1\n",
+                        "and plays football.\nIDS: _idx_1\n",
                         2: "Answer: He eats apples, pears, carrots "
-                        "and plays football.\nIDS: _idx_0, _idx_1, _idx_2\n",
+                        "and plays football.\nIDS: _idx_1, _idx_2\n",
                         3: "Answer: He eats apples, pears, carrots "
-                        "and plays football.\nIDS: _idx_0, _idx_1, _idx_2, _idx_3\n",
+                        "and plays football.\nIDS: _idx_1, _idx_2, _idx_3\n",
                     },
                     r"(?i).*\bapples\b.*\bpears\b.*\bcarrots\b",
                     {1, 2},

@@ -21,7 +21,7 @@ Process step by step:
 
 Given the context information the question: {question}
 
-If you don't know the answer, just say that you don't know, without references. 
+If you don't know the answer, just say '{empty_value}', without references IDS. 
 Don't try to make up an answer.
 
 The ids must be only in the form '_idx_<number>'.
@@ -32,7 +32,8 @@ INITIAL_QA_PROMPT = PromptTemplate(
     input_variables=["context_str", "question"],
     template=_initial_qa_prompt_template,
     partial_variables={
-        "format_instructions": references_parser.get_format_instructions()
+        "format_instructions": references_parser.get_format_instructions(),
+        "empty_value": empty_value,
     },
     output_parser=references_parser,
 )
@@ -51,13 +52,12 @@ Given the new context, refine the original answer to better answer the question.
 If you don't know how to refine the original answer, does not modify the answer.
 
 Process step by step:
-- ignore prior knowledge
-- refine the original answer to better answer the question. ONLY if you do update it
-- append the new IDS from the existing answser IDS as well. 
+- use only the context to answer to refine the original answer to better answer the question. ONLY if you do update it,
+append the new IDS from the existing answser IDS as well. 
 - produce the result
 
 ALWAYS return a "IDS" part in your answer. 
-If the context isn't useful, return the original answer.
+If the context isn't useful, return the original answer and the original IDS.
 
 If you don't know the answer, just say '{empty_value}'. Don't try to make up an answer.
 

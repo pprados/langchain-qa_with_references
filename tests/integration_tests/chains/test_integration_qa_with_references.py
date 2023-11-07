@@ -45,8 +45,8 @@ samples = {
 
 
 # %%
-VERBOSE_PROMPT = True
-VERBOSE_RESULT = True
+VERBOSE_PROMPT = False
+VERBOSE_RESULT = False
 USE_CACHE = True
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 5
@@ -118,7 +118,7 @@ def _init_llm(temperature: float = TEMPERATURE, max_token: int = MAX_TOKENS) -> 
         langchain.llm_cache = SQLiteCache(
             database_path="/tmp/cache_qa_with_reference.db"
         )
-    llm = langchain.OpenAI(
+    llm = langchain.llms.OpenAI(
         temperature=temperature,
         max_tokens=max_token,
         # cache=False,

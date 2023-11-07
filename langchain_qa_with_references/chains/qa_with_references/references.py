@@ -59,18 +59,18 @@ if _OPTIMIZE:
                 "At the start of a new line 'IDS:' followed by a comma-separated "
                 "list of document identifiers used "
                 "in the response. The ids must have the form _idx_<number>.\n"
-                "\n"
-                "Answer: my response\n"
-                "IDS: _idx_1, _idx_2\n\n"
+                # "\n"
+                # "Answer: my response\n"
+                # "IDS: _idx_1, _idx_2\n\n"
             )
 
         def parse(self, text: str) -> References:
-            regex = r"(?:Answer:)?(.*)\sIDS:(.*)"
+            regex = r"(?i)(?:Answer:)?(.*)\sIDS:(.*)"
             match = re.search(regex, text)
             if match:
                 ids: Set[int] = set()
                 for str_doc_id in match[2].split(","):
-                    m = re.match(r"(?:_idx_)?(\d+)", str_doc_id.strip())
+                    m = re.match(r"\s*(?:_idx_)?(\d+)\s*", str_doc_id.strip())
                     if m:
                         ids.add(int(m[1]))
 

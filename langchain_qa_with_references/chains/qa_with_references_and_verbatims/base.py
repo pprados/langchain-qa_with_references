@@ -209,4 +209,4 @@ class QAWithReferencesAndVerbatimsChain(BaseQAWithReferencesAndVerbatimsChain):
 
     @property
     def _chain_type(self) -> str:
-        return "qa_with_references_chain"
+        return "qa_with_references_and_verbatim_chain"
