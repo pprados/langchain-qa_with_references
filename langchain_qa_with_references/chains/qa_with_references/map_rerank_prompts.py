@@ -50,7 +50,7 @@ The ids must be only in the form '_idx_<number>'.
 This should be in the following format:
 Question: [question here]
 Helpful Answer: [json answer here]
-Score: [allways to the next line, score between 0 and 100]
+Score: [always to the next line, score between 0 and 100]
 
 Context:
 ---------

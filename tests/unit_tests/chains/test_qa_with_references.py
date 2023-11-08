@@ -8,7 +8,9 @@ from langchain.callbacks.manager import Callbacks
 from langchain.llms import BaseLLM
 from langchain.schema import Document, OutputParserException
 
-from langchain_qa_with_references.chains import QAWithReferencesChain
+from langchain_qa_with_references.chains.qa_with_references.base import (
+    QAWithReferencesChain,
+)
 from tests.unit_tests.fake_llm import FakeLLM
 
 FAKE_LLM = True

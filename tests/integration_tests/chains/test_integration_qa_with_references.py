@@ -19,7 +19,9 @@ from langchain.schema.embeddings import Embeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter, TextSplitter
 from langchain.vectorstores import Chroma
 
-from langchain_qa_with_references.chains import RetrievalQAWithReferencesChain
+from langchain_qa_with_references.chains.qa_with_references.retrieval import (
+    RetrievalQAWithReferencesChain,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +45,6 @@ samples = {
     ],
 }
 
-
 # %%
 VERBOSE_PROMPT = False
 VERBOSE_RESULT = False
@@ -51,7 +52,7 @@ USE_CACHE = True
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 5
 TEMPERATURE = 0.0
-MAX_TOKENS = 1000
+MAX_TOKENS = 1500
 REDUCE_K_BELOW_MAX_TOKENS = False
 ALL_CHAIN_TYPE = ["stuff", "map_reduce", "refine", "map_rerank"]
 ALL_SAMPLES = sorted({(k, v) for k, ls in samples.items() for v in ls})
@@ -147,7 +148,7 @@ def _get_retriever(
     shutil.rmtree(f, ignore_errors=True)
 
     if provider == "wikipedia":
-        retriever = langchain.retrievers.WikipediaRetriever()
+        retriever = langchain.retrievers.WikipediaRetriever(wiki_client=None)
         docs = retriever.get_relevant_documents(question)
         split_docs = splitter.split_documents(docs)
         vectorstore = Chroma(

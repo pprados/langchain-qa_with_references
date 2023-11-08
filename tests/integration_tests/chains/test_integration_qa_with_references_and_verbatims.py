@@ -1,9 +1,8 @@
 import pytest
 
-from langchain_qa_with_references.chains import (
-    RetrievalQAWithReferencesAndVerbatimsChain,
+from langchain_qa_with_references.chains.qa_with_references_and_verbatims import (
+    retrieval,
 )
-
 from tests.integration_tests.chains.test_integration_qa_with_references import (
     ALL_CHAIN_TYPE,
     ALL_SAMPLES,
@@ -18,7 +17,7 @@ from tests.integration_tests.chains.test_integration_qa_with_references import (
 @pytest.mark.parametrize("provider,question", ALL_SAMPLES)
 def test_qa_with_reference_chain(provider: str, question: str, chain_type: str) -> None:
     _test_qa_with_reference_chain(
-        cls=RetrievalQAWithReferencesAndVerbatimsChain,
+        cls=retrieval.RetrievalQAWithReferencesAndVerbatimsChain,
         provider=provider,
         chain_type=chain_type,
         question=question,

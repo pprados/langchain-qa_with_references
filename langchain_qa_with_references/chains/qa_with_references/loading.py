@@ -27,12 +27,18 @@ class LoadingCallable(Protocol):
         """Callable to load the combine documents chain."""
 
 
+def _get_verbosity() -> bool:
+    from langchain.globals import get_verbose
+
+    return get_verbose()
+
+
 def _load_stuff_chain(
     llm: BaseLanguageModel,
     prompt: BasePromptTemplate = stuff_prompt.PROMPT,
     document_prompt: BasePromptTemplate = stuff_prompt.EXAMPLE_PROMPT,
     document_variable_name: str = "summaries",
-    verbose: Optional[bool] = None,
+    verbose: bool = _get_verbosity(),
     **kwargs: Any,
 ) -> stuff.StuffDocumentsChain:
     llm_chain = LLMChain(llm=llm, prompt=prompt, verbose=verbose)
@@ -56,7 +62,7 @@ def _load_map_reduce_chain(
     collapse_prompt: Optional[BasePromptTemplate] = None,
     reduce_llm: Optional[BaseLanguageModel] = None,
     collapse_llm: Optional[BaseLanguageModel] = None,
-    verbose: Optional[bool] = None,
+    verbose: bool = _get_verbosity(),
     token_max: int = 3000,
     **kwargs: Any,
 ) -> map_reduce.MapReduceDocumentsChain:
@@ -111,7 +117,7 @@ def _load_refine_chain(
     document_variable_name: str = "context_str",
     initial_response_name: str = "existing_answer",
     refine_llm: Optional[BaseLanguageModel] = None,
-    verbose: Optional[bool] = None,
+    verbose: bool = _get_verbosity(),
     **kwargs: Any,
 ) -> refine.RefineDocumentsChain:
     initial_chain = LLMChain(llm=llm, prompt=question_prompt, verbose=verbose)

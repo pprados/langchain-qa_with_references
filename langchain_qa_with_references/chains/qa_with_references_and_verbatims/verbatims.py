@@ -15,11 +15,8 @@ def _extract_original_verbatim(verbatim: str, page_content: str) -> Optional[str
     of same words in the original document.
     """
     only_words = filter(len, re.split(r"[^\w]+", verbatim))
-    regex_for_words_in_same_oder = (
-        r"(?i)\b" + r"\b[^\w]+".join(only_words) + r"\b"
-        r"\s*[.!?:;]?"
-        # Optional end of sentence
-    )
+    regex_for_words_in_same_oder = r"(?i)" + r"\b\b[^\w]+".join(only_words)
+    regex_for_words_in_same_oder += r"\b\s*[.!?:;]?"  # Optional end of sentence
     match = re.search(regex_for_words_in_same_oder, page_content, re.IGNORECASE)
     if match:
         return match[0].strip()

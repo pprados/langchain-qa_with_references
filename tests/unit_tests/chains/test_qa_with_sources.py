@@ -5,7 +5,7 @@ import pytest
 from langchain.chains import QAWithSourcesChain
 from langchain.schema import Document, OutputParserException
 
-from .test_qa_with_references import (
+from tests.unit_tests.chains.test_qa_with_references import (
     ALL_CHAIN_TYPE,
     CALLBACKS,
     init_llm,

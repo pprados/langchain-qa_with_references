@@ -4,11 +4,10 @@ from typing import Dict, List, Set, Tuple
 import pytest
 from langchain.schema import Document, OutputParserException
 
-from langchain_qa_with_references.chains import (
+from langchain_qa_with_references.chains.qa_with_references_and_verbatims.base import (
     QAWithReferencesAndVerbatimsChain,
 )
-
-from .test_qa_with_references import (
+from tests.unit_tests.chains.test_qa_with_references import (
     ALL_CHAIN_TYPE,
     CALLBACKS,
     compare_responses,

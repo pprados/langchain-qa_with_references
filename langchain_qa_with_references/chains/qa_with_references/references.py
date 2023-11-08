@@ -68,11 +68,11 @@ if _OPTIMIZE:
             regex = r"(?i)(?:Answer:)?(.*)\sIDS:(.*)"
             match = re.search(regex, text)
             if match:
-                ids: Set[int] = set()
+                ids: Set[str] = set()
                 for str_doc_id in match[2].split(","):
                     m = re.match(r"\s*(?:_idx_)?(\d+)\s*", str_doc_id.strip())
                     if m:
-                        ids.add(int(m[1]))
+                        ids.add(m[1])
 
                 return References(response=match[1].strip(), documents_ids=ids)
             else:
